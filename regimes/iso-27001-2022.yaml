@@ -1,0 +1,79 @@
+# ISO/IEC 27001:2022 — Information Security Management Systems
+# Author's interpretation, dev-environment slice only.
+#
+# This plugin addresses the Annex A controls that have a clear implementation
+# in source code / dev workflow. It does NOT address management-system clauses
+# (4–10) or organizational controls (A.5 leadership, asset inventories, vendor
+# management, BCP, physical security, HR, etc.) — those are ISMS-scope and
+# require organizational policies, audits, and management commitment.
+
+id: iso-27001-2022
+name: ISO/IEC 27001:2022 — Information Security Management Systems
+version: "2022"
+publishedDate: "2022-10"
+scope: |
+  Annex A controls implementable in code / dev workflow. The plugin covers
+  A.5.15, A.5.34, A.8.3, A.8.5, A.8.10, A.8.11, A.8.12, A.8.15, A.8.24,
+  A.8.25, A.8.28, A.8.32. All other Annex A controls (organizational, physical,
+  HR, supplier) are out of scope and remain the user's responsibility.
+
+controls:
+  - id: rbac-scaffold
+    annexA: [A.5.15, A.8.3]
+    description: Role-based access control scaffold — central permission check, least privilege, segregation.
+    implementation: scaffold src/security/rbac.ts
+    severity: HIGH
+
+  - id: secure-authentication
+    annexA: [A.8.5]
+    description: Secure auth — MFA support, session config (httpOnly, secure, sameSite), strong hashing (argon2id).
+    implementation: secure-by-design skill nudges + RBAC scaffold integration
+    severity: HIGH
+
+  - id: information-deletion
+    annexA: [A.8.10]
+    description: Retention runner that enforces retentionDays per dataCategory; soft-delete with hard-delete on expiry.
+    implementation: scaffold src/privacy/retention_runner.ts
+    severity: HIGH
+
+  - id: data-masking
+    annexA: [A.8.11]
+    description: PII/PHI redaction in logs and exports. Manifest-driven sensitivity tiers.
+    implementation: scaffold src/security/audit_log.ts + src/security/phi_redaction.ts (when healthcare)
+    severity: HIGH
+
+  - id: data-leakage-prevention
+    annexA: [A.8.12]
+    description: Pre-commit secret scan + PII-in-logs linter.
+    implementation: pre-commit hooks
+    severity: HIGH
+
+  - id: logging
+    annexA: [A.8.15]
+    description: Structured audit log of security-relevant events (auth, authz, data access, admin actions).
+    implementation: scaffold src/security/audit_log.ts; regime-reviewer requires auditLog() on mutations.
+    severity: HIGH
+
+  - id: cryptography
+    annexA: [A.8.24]
+    description: Reject DIY crypto, weak algos (MD5, SHA-1, DES). Require AES-GCM, argon2id, TLS 1.2+.
+    implementation: secure-by-design skill blocks
+    severity: HIGH
+
+  - id: secure-sdlc
+    annexA: [A.8.25, A.8.26, A.8.27, A.8.28, A.8.29]
+    description: SDLC discipline — code review, SAST in CI, threat modelling per major feature.
+    implementation: PR template + threat-model template + CI workflow
+    severity: MEDIUM
+
+  - id: change-management
+    annexA: [A.8.32]
+    description: Authorized changes only — branch protection, signed commits, provenance tags.
+    implementation: commit-msg hook + PR template + branch-protection guidance
+    severity: MEDIUM
+
+  - id: pii-protection
+    annexA: [A.5.34]
+    description: Identify, classify, and protect PII. Manifest is the authoritative classification source.
+    implementation: privacy-by-design skill + manifest-driven sensitivity tiers
+    severity: HIGH

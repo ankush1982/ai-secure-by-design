@@ -1,0 +1,31 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-write-secret-scan.sh",
+          "description": "Block Writes/Edits that introduce hardcoded secrets. NIST SSDF PS.1.1."
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-end-summary.sh",
+          "description": "Summarize regime-relevant changes at session end."
+        }
+      ]
+    }
+  ],
+  "_projectInstall": {
+    "description": "When /sbd-deploy runs, these hooks are wired into the USER's repo, not into Claude Code. Treat as templates.",
+    "preCommit": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-secret-scan.sh",
+    "prePush": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-pii-in-logs.sh",
+    "commitMsg": "${CLAUDE_PLUGIN_ROOT}/hooks/commit-msg-provenance.sh"
+  }
+}

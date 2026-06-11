@@ -1,0 +1,66 @@
+# NIST Secure Software Development Framework (SP 800-218) v1.1
+# Author's interpretation, dev-environment slice only.
+# Reference: https://csrc.nist.gov/publications/detail/sp/800-218/final
+#
+# This file maps SSDF practices to the controls this plugin can implement
+# in the user's repo. Controls listed here are activated when the user
+# selects nist-ssdf-1.1 in their manifest.
+
+id: nist-ssdf-1.1
+name: NIST Secure Software Development Framework v1.1
+version: "1.1"
+publishedDate: "2022-02"
+scope: |
+  This plugin implements the dev-environment slice of SSDF: PO toolchain setup,
+  PS protecting source code, PW producing secured code, RV root-cause discipline.
+  It does NOT implement organizational practices (PO.2.1 roles, PO.3.3 toolchain
+  attestation across vendors) — those are organizational, not technical.
+
+controls:
+  - id: provenance-tag-required
+    practices: [PS.3.1]
+    description: Every commit message carries an authorship-provenance tag — [human], [ai-human-pair], or [ai:<model-id>].
+    implementation: commit-msg hook (hooks/commit-msg-provenance.sh)
+    severity: HIGH
+
+  - id: secret-scan-pre-commit
+    practices: [PS.1.1]
+    description: Reject commits containing hardcoded secrets (AWS keys, API tokens, private keys, OpenAI keys).
+    implementation: pre-commit hook (hooks/pre-commit-secret-scan.sh) and PreToolUse hook on Write/Edit
+    severity: CRITICAL
+
+  - id: dependency-audit
+    practices: [PW.4.1, PW.4.4]
+    description: Surface known vulnerabilities in third-party deps; require CVE rationale to bypass.
+    implementation: CI job in templates/.github/workflows/secure-by-design.yml
+    severity: HIGH
+
+  - id: input-validation-required
+    practices: [PW.5.1]
+    description: External-facing endpoints validate input through schema (Zod, Pydantic, Joi) before business logic.
+    implementation: secure-by-design skill nudge + regime-reviewer check
+    severity: HIGH
+
+  - id: code-review-before-merge
+    practices: [PW.7.1, PW.7.2]
+    description: All merges to default branch require human review. AI-suggested code reviewed by a separate human.
+    implementation: PR template + regime-reviewer subagent + branch protection guidance in docs/
+    severity: MEDIUM
+
+  - id: security-testing-in-ci
+    practices: [PW.8.1, PW.8.2]
+    description: SAST/lint runs in CI on every PR.
+    implementation: templates/.github/workflows/secure-by-design.yml
+    severity: HIGH
+
+  - id: vulnerability-response
+    practices: [RV.1.1, RV.2.1, RV.3.1]
+    description: Documented process to triage, remediate, and root-cause vulnerabilities.
+    implementation: docs/templates/vulnerability-response.md (deployed by /sbd-deploy)
+    severity: MEDIUM
+
+  - id: secure-build-config
+    practices: [PW.6.1, PW.6.2]
+    description: Reproducible builds; lockfiles committed; build tools pinned.
+    implementation: PR template check + regime-reviewer
+    severity: MEDIUM

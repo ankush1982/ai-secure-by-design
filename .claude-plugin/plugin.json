@@ -1,0 +1,45 @@
+{
+  "name": "secure-by-design",
+  "displayName": "Secure & Private by Design",
+  "version": "0.1.0",
+  "description": "Privacy-by-design and secure-by-design controls for products subject to NIST SSDF, ISO 27001:2022, and India DPDP Act 2023. Profiles your project, asks which regimes apply, then deploys dev-loop guardrails and product-code scaffolds.",
+  "author": {
+    "name": "Ankush Jain",
+    "url": "https://github.com/ankush1982"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/ankush1982/ai-secure-by-design",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ankush1982/ai-secure-by-design"
+  },
+  "keywords": [
+    "security",
+    "privacy",
+    "dpdp",
+    "nist-ssdf",
+    "iso-27001",
+    "secure-by-design",
+    "privacy-by-design",
+    "healthcare",
+    "ai-governance"
+  ],
+  "engines": {
+    "claude-code": ">=1.0.0"
+  },
+  "supportedRegimes": [
+    "nist-ssdf-1.1",
+    "iso-27001-2022",
+    "dpdp-2023"
+  ],
+  "supportedStacks": [
+    "typescript-express",
+    "typescript-nextjs",
+    "python-fastapi"
+  ],
+  "commands": "./commands",
+  "agents": "./agents",
+  "skills": "./skills",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./mcp-server/server.json"
+}

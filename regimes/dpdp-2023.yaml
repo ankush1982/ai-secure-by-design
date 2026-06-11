@@ -1,0 +1,95 @@
+# India Digital Personal Data Protection Act, 2023 — Author's interpretation.
+# Rules under the Act are being finalised by MeitY through 2025–26. This catalog
+# reflects the statute as enacted (11 Aug 2023) and may need revision once final
+# rules are notified. Verify currency before relying on this in production.
+
+id: dpdp-2023
+name: India Digital Personal Data Protection Act, 2023
+version: "2023"
+publishedDate: "2023-08"
+scope: |
+  The plugin implements technical scaffolds and dev-loop controls aligned with the
+  Act's data fiduciary obligations (§§5–10) and data principal rights (§§11–14),
+  plus children's data (§9), cross-border transfer (§16), and breach reporting (§8(6)).
+  It does NOT cover: Data Protection Board procedures, complaint handling beyond
+  scaffold, organizational policies, DPO appointment processes for Significant
+  Data Fiduciaries (§10), or any subordinate rules notified after this version.
+
+controls:
+  - id: notice
+    section: "§5"
+    description: Notice presented before personal-data collection — purpose, rights, grievance contact, language options.
+    implementation: scaffold src/privacy/consent.ts + docs/templates/notice.md
+    severity: HIGH
+
+  - id: consent
+    section: "§6"
+    description: Free, specific, informed, unconditional, unambiguous consent. Recorded with purpose + version + timestamp. Withdrawable.
+    implementation: scaffold src/privacy/consent.ts
+    severity: CRITICAL
+
+  - id: legitimate-use
+    section: "§7"
+    description: Limited non-consent bases (employment, public-interest, medical emergency, etc.) — documented per use.
+    implementation: manifest field consentBasis + privacy-by-design skill check
+    severity: HIGH
+
+  - id: data-fiduciary-duties
+    section: "§8"
+    description: Accuracy, security, breach notification, retention, accountability.
+    implementation: scaffolds across src/privacy/ + src/security/
+    severity: HIGH
+
+  - id: breach-notification
+    section: "§8(6)"
+    description: Report breach to the Data Protection Board and affected data principals.
+    implementation: scaffold src/privacy/breach_notifier.ts
+    severity: CRITICAL
+
+  - id: retention
+    section: "§8(7)"
+    description: Erase personal data when purpose served / consent withdrawn / retention expires. Per dataCategory retentionDays.
+    implementation: scaffold src/privacy/retention_runner.ts
+    severity: HIGH
+
+  - id: children-data
+    section: "§9"
+    description: Verifiable parental consent for processing children's data (< 18). No tracking, behavioural monitoring, or targeted advertising to children.
+    implementation: scaffold src/privacy/children_gate.ts (deployed only when childrenDataPossible: true)
+    severity: CRITICAL
+
+  - id: significant-data-fiduciary
+    section: "§10"
+    description: Higher obligations for SDFs — DPO, DPIA, periodic audit. The plugin surfaces guidance but does not determine SDF status (the Central Government notifies).
+    implementation: manifest field significantDataFiduciary + docs/templates/dpia.md
+    severity: MEDIUM
+
+  - id: right-to-access
+    section: "§11"
+    description: Data principal can request summary of personal data and processing activities.
+    implementation: scaffold src/privacy/dsr_handler.ts (access route)
+    severity: HIGH
+
+  - id: right-to-correction-erasure
+    section: "§12"
+    description: Correction, completion, updating, and erasure of personal data.
+    implementation: scaffold src/privacy/dsr_handler.ts (correction + erasure routes)
+    severity: HIGH
+
+  - id: right-to-grievance
+    section: "§13"
+    description: Grievance redressal — readily available means and defined response timeline.
+    implementation: scaffold src/privacy/dsr_handler.ts (grievance route)
+    severity: HIGH
+
+  - id: right-to-nominate
+    section: "§14"
+    description: Data principal may nominate another individual to exercise rights in case of death / incapacity.
+    implementation: scaffold src/privacy/dsr_handler.ts (nominate route)
+    severity: MEDIUM
+
+  - id: cross-border-transfer
+    section: "§16"
+    description: Government may notify countries to which transfer of personal data is restricted. Default — permitted unless restricted.
+    implementation: manifest field crossBorder.destinations[] + regime-reviewer check
+    severity: HIGH

@@ -1,0 +1,13 @@
+{
+  "name": "ai-secure-by-design",
+  "displayName": "AI Secure & Private by Design",
+  "description": "Open-source Claude Code plugin that deploys secure-by-design and privacy-by-design controls into your dev environment and product code, mapped to NIST SSDF, ISO 27001:2022, and India DPDP Act 2023.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "secure-by-design",
+      "source": "./",
+      "description": "Profile your project, pick your compliance regime(s), deploy controls — both dev-loop guardrails and product-code scaffolds."
+    }
+  ]
+}

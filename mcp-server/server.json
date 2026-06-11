@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "secure-by-design": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js"],
+      "env": {},
+      "description": "Exposes tools that read the privacy-security-manifest, validate it, generate scaffolds, and run regime checks."
+    }
+  }
+}
