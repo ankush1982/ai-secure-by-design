@@ -33,11 +33,11 @@ function git(root: string, args: string[]): string {
 
 /** Lines added in the index (what `git commit` would record). */
 export function stagedAdded(root: string): AddedLines {
-  return parseUnifiedDiff(git(root, ['diff', '--cached', '--unified=0', '--no-color', '--no-ext-diff', '--diff-filter=ACMR']));
+  return parseUnifiedDiff(git(root, ['diff', '--cached', '--relative', '--unified=0', '--no-color', '--no-ext-diff', '--diff-filter=ACMR']));
 }
 
 /** Lines added in a revision range such as origin/main...HEAD. */
 export function rangeAdded(root: string, range: string): AddedLines {
   if (range.startsWith('-') || !/^[\w./~^@{}-]+(\.\.\.?[\w./~^@{}-]+)?$/.test(range)) throw new Error(`invalid git range: ${range}`);
-  return parseUnifiedDiff(git(root, ['diff', '--unified=0', '--no-color', '--no-ext-diff', '--diff-filter=ACMR', range, '--']));
+  return parseUnifiedDiff(git(root, ['diff', '--relative', '--unified=0', '--no-color', '--no-ext-diff', '--diff-filter=ACMR', range, '--']));
 }

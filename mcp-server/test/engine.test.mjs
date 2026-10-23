@@ -90,12 +90,17 @@ test('--staged and --diff report only added lines', () => {
   const path = join(dir, 'src/routes/patients.ts');
   writeFileSync(path, readFileSync(path, 'utf8') + `\nrouter.put('/x', h);\nconsole.log(user.phone);\n`);
   execFileSync('git', ['add', '.'], { cwd: dir });
-  const staged = json(['check', '--root', dir, '--staged']).findings.filter((f) => f.line);
-  assert.deepEqual(staged.map((f) => f.ruleId).sort(), ['SBD-CODE-001', 'SBD-CODE-002']);
+  const staged = json(['check', '--root', dir, '--staged']).findings;
+  assert.deepEqual(staged.map((f) => f.ruleId).sort(), ['SBD-CODE-001', 'SBD-CODE-002'], 'no project-wide or manifest findings in diff mode');
   execFileSync('git', ['-c', 'user.email=t@e', '-c', 'user.name=t', 'commit', '-q', '--no-verify', '-m', 'x [human]'], { cwd: dir });
-  const ranged = json(['check', '--root', dir, '--diff', 'HEAD~1...HEAD']).findings.filter((f) => f.line);
+  const ranged = json(['check', '--root', dir, '--diff', 'HEAD~1...HEAD']).findings;
   assert.deepEqual(ranged.map((f) => f.line), staged.map((f) => f.line));
   assert.equal(sbd(['check', '--root', dir, '--diff=--output=x']).code, 2, 'ranges that look like git options are refused');
+  // Touching the manifest brings its findings back.
+  const mpath = join(dir, 'privacy-security-manifest.yaml');
+  writeFileSync(mpath, readFileSync(mpath, 'utf8') + '# edit\n');
+  execFileSync('git', ['add', '.'], { cwd: dir });
+  assert.ok(json(['check', '--root', dir, '--staged']).findings.some((f) => f.ruleId === 'SBD-MANIFEST-008'));
 });
 
 test('audit-log window does not borrow a later handler\'s auditLog call', () => {

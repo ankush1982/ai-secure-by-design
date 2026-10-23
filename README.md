@@ -60,6 +60,8 @@ Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-
 
 Exit codes: `0` no findings at or above `--fail-on` (default `high`), `1` findings, `2` usage or runtime error.
 
+With `--staged` or `--diff`, `sbd check` gates the change: it reports findings on added lines, and manifest findings only if the change touches the manifest. Project-wide gaps such as missing scaffolds appear in a full `sbd check`, which the CI template runs on pushes to the main branch.
+
 Each finding has a stable rule ID (`SBD-SECRET-001`, `SBD-CODE-002`, `SBD-SCAF-004`, …), a severity, a location and the regime controls it maps to. Rules live in `rules/*.yaml`; add a rule there and every adapter picks it up.
 
 ### Git hooks (any editor, any AI)

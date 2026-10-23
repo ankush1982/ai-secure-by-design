@@ -34,15 +34,22 @@ export function runCheck(opts: CheckOptions): CheckResult {
     const added: AddedLines | undefined = opts.diff ? rangeAdded(root, opts.diff) : opts.staged ? stagedAdded(root) : undefined;
     const files = added ? [...added.keys()].filter((f) => existsSync(join(root, f))) : listFiles(root);
     const lineFindings = [...scanFiles(root, files, m), ...fieldFindings(root, files, m)];
-    findings.push(...(added ? lineFindings.filter((f) => onAddedLine(f, added)) : lineFindings));
-    findings.push(...scaffoldFindings(root, m));
+    if (!added) {
+      findings.push(...lineFindings, ...scaffoldFindings(root, m));
+    } else {
+      // Diff mode gates the change, not the whole project: keep findings on added lines,
+      // and manifest findings only when the change touches the manifest. Project-wide
+      // gaps (missing scaffolds) are reported by a full `sbd check`.
+      findings.push(...lineFindings.filter((f) => onAddedLine(f, added)));
+      if (!added.has(manifestRel)) findings.splice(0, loaded.findings.length);
+    }
   }
 
   return result(root, manifestRel, m, findings);
 }
 
 function onAddedLine(f: Finding, added: AddedLines): boolean {
-  if (!f.file || !f.line) return true;
+  if (!f.file || !f.line) return false;
   return (added.get(f.file) ?? []).some((l) => l.line === f.line);
 }
 
