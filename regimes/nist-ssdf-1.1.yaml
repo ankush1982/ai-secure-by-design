@@ -6,6 +6,7 @@
 # in the user's repo. Controls listed here are activated when the user
 # selects nist-ssdf-1.1 in their manifest.
 
+schemaVersion: "0.2"
 id: nist-ssdf-1.1
 name: NIST Secure Software Development Framework v1.1
 version: "1.1"

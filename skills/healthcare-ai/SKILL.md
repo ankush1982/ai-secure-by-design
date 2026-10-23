@@ -16,7 +16,7 @@ This product likely operates in India healthcare regulatory space, which current
 
 | Source | Topic |
 |---|---|
-| DPDP Act 2023 §6 | Health data is sensitive personal data — explicit consent required |
+| DPDP Act 2023 §6 | Consent must be free, specific, informed, unconditional and unambiguous. The Act has no separate "sensitive personal data" tier (that was in earlier bills); this plugin's `sensitive-personal` label is its own tier for choosing scaffolds, not a legal category. |
 | DPDP Act 2023 §9 | Verifiable parental consent for pediatric patients (under 18) |
 | Telemedicine Practice Guidelines 2020 (BoG-MCI) | Identity verification, consent, professional judgment, prescriptions, record-keeping (minimum 3 years) |
 | Clinical Establishments Act 2010 + State rules | Record-keeping obligations vary by state |

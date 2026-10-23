@@ -9,17 +9,28 @@
 - [x] 4 skills (privacy-by-design, secure-by-design, dpdp-compliance, healthcare-ai)
 - [x] PreToolUse + commit-msg + pre-commit + session-end hooks
 - [x] 3 regime YAMLs (NIST SSDF 1.1, ISO 27001:2022, DPDP 2023)
-- [x] TypeScript+Express scaffolds: consent, dsr-handler, audit-log, children-gate, phi-redaction, ai-decision-log, human-oversight, rbac, security-headers, retention-runner, breach-notifier
+- [x] TypeScript+Express scaffolds: consent, dsr_handler, audit_log, children_gate, phi_redaction, decision_log, human_oversight, rbac, security_headers, retention_runner, breach_notifier
 - [x] PR template + GitHub Actions workflow
 - [x] MCP server skeleton (validate-manifest, list-controls)
 
-## v0.2 — first feedback round
+## v0.2 — platform-neutral engine (in progress on `v0.2-platform-neutral`)
+
+- [x] JSON Schemas for the manifest, regime catalogues and rules (`schemas/`)
+- [x] `sbd` CLI and library: `check`, `scan`, `validate`, `plan`, `controls`, `explain`, `provenance`; text, JSON and SARIF 2.1.0 output; exit codes
+- [x] Check rules as data (`rules/*.yaml`)
+- [x] Complete MCP server: 7 read-only tools, 3 prompts, resources; stdio and Streamable HTTP transports
+- [x] pre-commit framework hooks (`.pre-commit-hooks.yaml`) and a GitHub Action (`action.yml`) with SARIF upload
+- [x] Instruction packs generated from one source: CLAUDE.md, AGENTS.md, GEMINI.md, Copilot, Cursor
+- [x] Fixture-based tests for the engine, hooks and MCP server
+- [x] Fixes: private-key pattern never matched in the pre-write hook; hook read input from a non-existent env var and hooks.json lacked the `hooks` wrapper; scaffold names disagreed between generator, templates and check; dpdp-2023.yaml did not parse; DPDP "sensitive personal data" and "contract ground" statements; DPDP Rules 2025 status
+- [ ] Cross-platform evaluation harness (same prompts through each adapter, diff the results)
+- [ ] Signed releases, SBOM, permissions statement
+- [ ] `init --non-interactive` and `deploy` in the CLI (today: MCP prompts + `plan`)
+
+## v0.2.x — first feedback round
 
 - [ ] Python + FastAPI scaffold templates (mirror of TS set)
 - [ ] TypeScript + Next.js scaffold templates (app-router-aware)
-- [ ] Real implementation of `sbd_check_regimes` MCP tool (parity with `/sbd-check`)
-- [ ] Real implementation of `sbd_generate_scaffold` MCP tool
-- [ ] Cursor rule pack + `mcp.json` snippet for non-Claude-Code users
 - [ ] Indian data-privacy lawyer review of the DPDP scaffolds and disclaimers
 - [ ] Three friends test on real Indian-product codebases; capture friction in issues
 

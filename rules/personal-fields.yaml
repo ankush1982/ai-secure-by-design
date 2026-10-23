@@ -1,0 +1,37 @@
+# Field names that usually hold personal or sensitive data. `sbd check` reports schema
+# fields matching these tokens that the manifest has not classified.
+#   tokens     — match any word of the field name (split on _ - and camelCase), or the
+#                whole name with separators removed (date_of_birth -> dateofbirth)
+#   exactOnly  — match only when the whole field name equals the token
+schemaVersion: "0.2"
+ruleId: SBD-FIELD-001
+severity: HIGH
+regimes:
+  - { regime: iso-27001-2022, control: pii-protection }
+  - { regime: dpdp-2023, control: data-fiduciary-duties }
+tokens:
+  - email
+  - phone
+  - mobile
+  - address
+  - dob
+  - dateofbirth
+  - birthdate
+  - aadhaar
+  - pan
+  - passport
+  - ssn
+  - gender
+  - firstname
+  - lastname
+  - fullname
+  - health
+  - medical
+  - diagnosis
+  - prescription
+  - lab
+  - symptom
+  - biometric
+  - ipaddress
+exactOnly:
+  - name

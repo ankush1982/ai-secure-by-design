@@ -5,12 +5,17 @@
 
 set -uo pipefail
 
+# Preferred path: the sbd engine, so git hooks, agent hooks and CI share one rule set.
+if command -v sbd >/dev/null 2>&1; then
+  exec sbd scan --staged --fail-on high
+fi
+
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 [ -z "$STAGED" ] && exit 0
 
 PATTERNS=(
   'AKIA[0-9A-Z]{16}'
-  '-----BEGIN (RSA|EC|OPENSSH|DSA) PRIVATE KEY-----'
+  '-----BEGIN (RSA |EC |OPENSSH |DSA |PGP |ENCRYPTED )?PRIVATE KEY'
   '(?i)(api[_-]?key|secret|password|token)\s*[:=]\s*["'"'"'][A-Za-z0-9+/=_-]{24,}["'"'"']'
   'sk-[A-Za-z0-9]{32,}'
   'xox[baprs]-[A-Za-z0-9-]{10,}'
@@ -27,7 +32,7 @@ for FILE in $STAGED; do
     *.snap|*/fixtures/*|*/__snapshots__/*) continue ;;
   esac
   for p in "${PATTERNS[@]}"; do
-    if git diff --cached "$FILE" | grep -P "^\+.*$p" > /dev/null 2>&1; then
+    if git diff --cached "$FILE" | grep -qP -e "^\+.*$p" 2>/dev/null; then
       echo "[secure-by-design] secret pattern in $FILE: $p" >&2
       FAILED=1
     fi

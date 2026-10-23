@@ -1,8 +1,12 @@
 # India Digital Personal Data Protection Act, 2023 — Author's interpretation.
-# Rules under the Act are being finalised by MeitY through 2025–26. This catalog
-# reflects the statute as enacted (11 Aug 2023) and may need revision once final
-# rules are notified. Verify currency before relying on this in production.
+# The Digital Personal Data Protection Rules, 2025 were notified by MeitY as
+# G.S.R. 846(E) on 13 Nov 2025, with obligations commencing in phases. This catalog
+# maps the statute as enacted (11 Aug 2023). It does NOT yet map Rule-level
+# obligations (notice content, breach-intimation timelines, data retention periods,
+# verifiable parental consent mechanics, Significant Data Fiduciary duties).
+# Check the Rules and their commencement dates before relying on this in production.
 
+schemaVersion: "0.2"
 id: dpdp-2023
 name: India Digital Personal Data Protection Act, 2023
 version: "2023"
@@ -13,7 +17,7 @@ scope: |
   plus children's data (§9), cross-border transfer (§16), and breach reporting (§8(6)).
   It does NOT cover: Data Protection Board procedures, complaint handling beyond
   scaffold, organizational policies, DPO appointment processes for Significant
-  Data Fiduciaries (§10), or any subordinate rules notified after this version.
+  Data Fiduciaries (§10), or the obligations added by the DPDP Rules, 2025.
 
 controls:
   - id: notice
@@ -55,7 +59,7 @@ controls:
   - id: children-data
     section: "§9"
     description: Verifiable parental consent for processing children's data (< 18). No tracking, behavioural monitoring, or targeted advertising to children.
-    implementation: scaffold src/privacy/children_gate.ts (deployed only when childrenDataPossible: true)
+    implementation: "scaffold src/privacy/children_gate.ts (deployed only when childrenDataPossible: true)"
     severity: CRITICAL
 
   - id: significant-data-fiduciary

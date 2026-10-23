@@ -2,7 +2,7 @@
 // alignment with ISO/IEC 42001 §8.4 and EU AI Act Art. 12-style logging).
 // Reads from ../../privacy-security-manifest.yaml.
 // Safe to modify. Safe to delete. Re-run /sbd-deploy to regenerate.
-// Docs: docs/scaffolds/ai-decision-log.md
+// Docs: docs/scaffolds/decision_log.md
 //
 // Every AI inference flows through this wrapper. It records:
 //   - which AI system (matches aiSystems[].name in manifest)

@@ -40,7 +40,7 @@ Any string matching: AWS keys (`AKIA[0-9A-Z]{16}`), private-key blocks (`-----BE
 
 ### Auth
 
-- Login handler without rate-limit middleware → suggest adding (point at `src/security/rbac.ts` / `src/security/security-headers.ts`).
+- Login handler without rate-limit middleware → suggest adding (point at `src/security/rbac.ts` / `src/security/security_headers.ts`).
 - Session cookie without `httpOnly`, `secure`, `sameSite` → suggest fixing.
 - Permission check by string comparison rather than via `rbac.check(...)` → suggest centralization.
 - Missing CSRF protection on state-changing endpoints (for cookie auth) → suggest middleware.

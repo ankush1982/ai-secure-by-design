@@ -31,7 +31,7 @@ For a new schema column or API field, locate the closest `dataCategory` in the m
 
 Any time the user writes a log call whose args include a personal-data identifier:
 - Block the suggestion.
-- Propose routing through `src/security/audit-log.ts` which redacts by manifest classification.
+- Propose routing through `src/security/audit_log.ts` which redacts by manifest classification.
 - Example fix: `auditLog.event('user.lookup', { actor: req.user.id, target: userId })` — never `console.log(user)`.
 
 ### 4. New endpoint

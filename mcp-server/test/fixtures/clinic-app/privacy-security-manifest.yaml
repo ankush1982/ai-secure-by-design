@@ -1,0 +1,29 @@
+schemaVersion: "0.2"
+product:
+  name: clinic-app
+  domain: healthcare
+  description: Test fixture with known gaps.
+regimes:
+  - id: nist-ssdf-1.1
+  - id: iso-27001-2022
+  - id: dpdp-2023
+dataCategories:
+  - name: patient-clinical
+    sensitivity: sensitive-personal
+    fields: [diagnosis, prescription]
+    retentionDays: 1825
+    consentRequired: true
+    consentBasis: explicit
+    childrenDataPossible: true
+  - name: patient-identity
+    sensitivity: personal
+    fields: [email, phone]
+    consentRequired: true
+    consentBasis: contract
+aiSystems:
+  - name: triage
+    sdk: openai
+    riskLevel: high
+    decisionAutonomy: advisory
+    humanOversight: clinician-review
+    inputCategories: [patient-clinical, billing]

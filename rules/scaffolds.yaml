@@ -1,0 +1,16 @@
+# Required scaffolds. A scaffold is present when any candidate file exists:
+#   <dir>/<name>.<ext> for each ext, with name in snake_case or kebab-case.
+# Template sources live in templates/<stack>/<template>.
+schemaVersion: "0.2"
+rules:
+  - { id: SBD-SCAF-001, kind: scaffold, title: Consent scaffold, severity: CRITICAL, when: ["regime:dpdp-2023", "personalData"], dir: src/privacy, name: consent, template: consent.ts, regimes: [{ regime: dpdp-2023, control: consent }] }
+  - { id: SBD-SCAF-002, kind: scaffold, title: Data principal rights handler, severity: HIGH, when: ["regime:dpdp-2023", "personalData"], dir: src/privacy, name: dsr_handler, template: dsr_handler.ts, regimes: [{ regime: dpdp-2023, control: right-to-access }, { regime: dpdp-2023, control: right-to-correction-erasure }] }
+  - { id: SBD-SCAF-003, kind: scaffold, title: Retention runner, severity: HIGH, when: ["regime:dpdp-2023", "personalData"], dir: src/privacy, name: retention_runner, template: retention_runner.ts, regimes: [{ regime: dpdp-2023, control: retention }] }
+  - { id: SBD-SCAF-004, kind: scaffold, title: Children's data gate, severity: CRITICAL, when: ["regime:dpdp-2023", "childrenData"], dir: src/privacy, name: children_gate, template: children_gate.ts, regimes: [{ regime: dpdp-2023, control: children-data }] }
+  - { id: SBD-SCAF-005, kind: scaffold, title: Breach notifier, severity: HIGH, when: ["regime:dpdp-2023", "sensitiveData"], dir: src/privacy, name: breach_notifier, template: breach_notifier.ts, regimes: [{ regime: dpdp-2023, control: breach-notification }] }
+  - { id: SBD-SCAF-006, kind: scaffold, title: RBAC scaffold, severity: HIGH, when: ["regime:iso-27001-2022"], dir: src/security, name: rbac, template: rbac.ts, regimes: [{ regime: iso-27001-2022, control: rbac-scaffold }] }
+  - { id: SBD-SCAF-007, kind: scaffold, title: Audit log, severity: HIGH, when: ["regime:iso-27001-2022"], dir: src/security, name: audit_log, template: audit_log.ts, regimes: [{ regime: iso-27001-2022, control: logging }] }
+  - { id: SBD-SCAF-008, kind: scaffold, title: Security headers, severity: MEDIUM, when: ["regime:iso-27001-2022"], dir: src/security, name: security_headers, template: security_headers.ts, regimes: [{ regime: iso-27001-2022, control: secure-sdlc }] }
+  - { id: SBD-SCAF-009, kind: scaffold, title: PHI redaction, severity: HIGH, when: ["healthcare", "sensitiveData"], dir: src/security, name: phi_redaction, template: phi_redaction.ts, regimes: [{ regime: iso-27001-2022, control: data-masking }] }
+  - { id: SBD-SCAF-010, kind: scaffold, title: AI decision log, severity: HIGH, when: ["aiSystems"], dir: src/ai, name: decision_log, template: decision_log.ts, regimes: [{ regime: iso-27001-2022, control: logging }] }
+  - { id: SBD-SCAF-011, kind: scaffold, title: Human oversight gate, severity: HIGH, when: ["humanOversight"], dir: src/ai, name: human_oversight, template: human_oversight.ts, regimes: [] }

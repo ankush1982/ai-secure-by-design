@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ankush1982/ai-secure-by-design/schemas/manifest.schema.json",
+  "title": "privacy-security-manifest.yaml",
+  "description": "Single source of truth for the data a product handles, the regimes it targets and how scaffolds behave. Validated by `sbd check` and the MCP tool sbd_validate_manifest.",
+  "type": "object",
+  "required": ["schemaVersion", "product", "regimes", "dataCategories"],
+  "properties": {
+    "schemaVersion": {
+      "description": "Manifest schema version. 0.1 manifests stay valid; 0.2 is current.",
+      "oneOf": [
+        { "type": "string", "enum": ["0.1", "0.2"] },
+        { "type": "number", "enum": [0.1, 0.2] }
+      ]
+    },
+    "product": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "region": { "type": "string", "enum": ["IN", "EU", "US", "GLOBAL"] },
+        "deploymentMode": { "type": "string", "enum": ["saas", "self-hosted", "on-prem", "air-gapped"] },
+        "domain": { "type": "string", "description": "Free-text domain, e.g. healthcare. Used to decide healthcare-only scaffolds." },
+        "stack": { "type": "string", "description": "Scaffold stack id, e.g. typescript-express or python-fastapi." }
+      }
+    },
+    "regimes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+          "scope": { "type": "string" },
+          "significantDataFiduciary": { "type": ["boolean", "null"] }
+        }
+      }
+    },
+    "dataCategories": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/dataCategory" }
+    },
+    "aiSystems": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/aiSystem" }
+    },
+    "dataSubjectRights": {
+      "type": "object",
+      "properties": {
+        "contactPath": { "type": "string" },
+        "rightsImplemented": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["access", "correction", "erasure", "grievance", "nomination"] }
+        },
+        "responseDays": { "type": "integer", "minimum": 1 },
+        "grievanceOfficer": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" }
+          }
+        }
+      }
+    },
+    "breachNotification": {
+      "type": "object",
+      "properties": {
+        "internalEscalation": { "type": "string" },
+        "dpbContactEmail": { "type": "string" },
+        "dataSubjectNotifyChannel": { "type": "string" },
+        "responseTargetHours": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "crossBorder": {
+      "type": "object",
+      "properties": {
+        "destinations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service", "country"],
+            "properties": {
+              "service": { "type": "string" },
+              "country": { "type": "string" },
+              "region": { "type": "string" },
+              "purpose": { "type": "string" },
+              "legalBasis": { "type": "string" },
+              "reviewed": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "securityControls": {
+      "type": "object",
+      "properties": {
+        "encryptionAtRest": { "$ref": "#/definitions/requirement" },
+        "encryptionInTransit": { "$ref": "#/definitions/requirement" },
+        "rbac": { "$ref": "#/definitions/requirement" },
+        "auditLog": { "$ref": "#/definitions/requirement" },
+        "secretManager": { "type": ["string", "null"] },
+        "parentConsentProvider": { "type": ["string", "null"] }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "properties": {
+        "generatedBy": { "type": "string" },
+        "generatedAt": { "type": "string" },
+        "lastEditedAt": { "type": "string" }
+      }
+    }
+  },
+  "definitions": {
+    "requirement": { "type": "string", "enum": ["required", "recommended", "optional", "not-applicable"] },
+    "dataCategory": {
+      "type": "object",
+      "required": ["name", "sensitivity"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "sensitivity": { "type": "string", "enum": ["not-personal", "personal", "sensitive-personal"] },
+        "rationale": { "type": "string" },
+        "fields": { "type": "array", "items": { "type": "string" } },
+        "storedIn": { "type": "array", "items": { "type": "string" } },
+        "retentionDays": { "type": ["integer", "null"], "minimum": 1 },
+        "consentRequired": { "type": "boolean" },
+        "consentBasis": { "type": "string", "enum": ["explicit", "contract", "legitimate-use", "legal-obligation", "not-applicable"] },
+        "childrenDataPossible": { "type": "boolean" },
+        "crossBorderRestrictions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "aiSystem": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string" },
+        "sdk": { "type": "string" },
+        "riskLevel": { "type": "string", "enum": ["low", "medium", "high"] },
+        "decisionAutonomy": { "type": "string", "enum": ["advisory", "human-in-the-loop", "human-on-the-loop", "autonomous"] },
+        "humanOversight": { "type": "string", "description": "'none' or a short label for the oversight mode." },
+        "logDecisions": { "type": "boolean" },
+        "explainability": { "type": "string" },
+        "inputCategories": { "type": "array", "items": { "type": "string" } },
+        "outputType": { "type": "string" }
+      }
+    }
+  }
+}
