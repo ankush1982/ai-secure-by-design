@@ -11,3 +11,5 @@ coverage/
 .idea/
 *.tsbuildinfo
 mcp-server/dist/
+build/
+!/dist/

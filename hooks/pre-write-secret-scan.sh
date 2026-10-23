@@ -7,7 +7,7 @@
 # .tool_input. Exit code 2 blocks the call and stderr is shown as the reason.
 #
 # Preferred path: the sbd engine (same rules as git hooks and CI). Fallback: the
-# grep patterns below, for installs where the engine has not been built.
+# grep patterns below, for machines without Node.js.
 
 set -uo pipefail
 
@@ -15,14 +15,14 @@ INPUT=$(cat)
 [ -z "$INPUT" ] && exit 0
 
 ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-CLI="$ROOT/mcp-server/dist/cli.js"
+CLI="$ROOT/dist/sbd.mjs"
 if command -v node >/dev/null 2>&1 && [ -f "$CLI" ]; then
   printf '%s' "$INPUT" | node "$CLI" hook claude-pretooluse
   exit $?
 fi
 
 if ! command -v jq >/dev/null 2>&1; then
-  echo "[secure-by-design] secret scan skipped: build the engine (npm ci && npm run build in $ROOT) or install jq." >&2
+  echo "[secure-by-design] secret scan skipped: install Node.js 20+ (preferred) or jq." >&2
   exit 0
 fi
 

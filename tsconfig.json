@@ -9,7 +9,7 @@
     "noUncheckedIndexedAccess": true,
     "declaration": true,
     "sourceMap": true,
-    "outDir": "mcp-server/dist",
+    "outDir": "build/tsc",
     "rootDir": "mcp-server/src",
     "resolveJsonModule": true,
     "skipLibCheck": true

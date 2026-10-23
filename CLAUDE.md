@@ -13,7 +13,7 @@ Checks that must give the same answer every time are done by the `sbd` engine, n
 
 - Use the plugin's MCP tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`.
 - Slash commands: `/sbd-init` (write the manifest), `/sbd-deploy` (scaffolds and hooks), `/sbd-check` (gap report), `/sbd-add` (one control).
-- If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/cli.js" check`.
+- If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" check`.
 - Report the engine's findings as they are, with rule IDs and `file:line`. Add your own observations separately, labelled as judgement.
 - Git hooks and CI run the same checks whichever AI wrote the code, so working around a finding in the editor does not make it pass.
 

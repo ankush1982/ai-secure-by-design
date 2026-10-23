@@ -5,8 +5,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-export const CLI = join(REPO, 'mcp-server/dist/cli.js');
-export const SERVER = join(REPO, 'mcp-server/dist/index.js');
+export const CLI = join(REPO, 'dist/sbd.mjs');
+export const SERVER = join(REPO, 'dist/sbd-mcp.mjs');
 export const FIXTURE = join(REPO, 'mcp-server/test/fixtures/clinic-app');
 
 // Secrets are assembled at run time so this repository never contains a real-looking one.

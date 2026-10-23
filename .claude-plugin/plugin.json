@@ -43,7 +43,7 @@
     "secure-by-design": {
       "command": "node",
       "args": [
-        "${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js"
+        "${CLAUDE_PLUGIN_ROOT}/dist/sbd-mcp.mjs"
       ]
     }
   }

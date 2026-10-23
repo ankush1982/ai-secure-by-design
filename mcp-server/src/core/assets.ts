@@ -1,6 +1,6 @@
 // Locates the bundled data directories (regimes/, rules/, schemas/, templates/).
-// Works from a git checkout, an npm install and a Claude plugin install, because the
-// compiled code always sits at <package>/mcp-server/dist/core/.
+// Works from a git checkout, an npm install, a pre-commit install and a Claude plugin
+// install: the bundles sit at <package>/dist/, the sources at <package>/mcp-server/src/.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

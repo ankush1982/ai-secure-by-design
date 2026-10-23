@@ -42,10 +42,9 @@ An AI assistant explains findings and proposes fixes. It does not decide what th
 ### Any platform: the CLI
 
 ```bash
-git clone https://github.com/ankush1982/ai-secure-by-design && cd ai-secure-by-design
-npm ci            # installs dependencies and builds mcp-server/dist
+git clone https://github.com/ankush1982/ai-secure-by-design
 cd /path/to/your/repo
-node /path/to/ai-secure-by-design/mcp-server/dist/cli.js check
+node /path/to/ai-secure-by-design/dist/sbd.mjs check
 ```
 
 Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-secure-by-design#<tag-or-sha>`) and run `npx sbd check`. It is not published to the npm registry yet.
@@ -86,8 +85,8 @@ Copy `templates/.github/workflows/secure-by-design.yml`. It uses this repo's `ac
 ### MCP server (Claude, ChatGPT, Gemini, Copilot, Cursor, …)
 
 ```bash
-node /path/to/ai-secure-by-design/mcp-server/dist/index.js --root /path/to/your/repo          # stdio (default)
-node /path/to/ai-secure-by-design/mcp-server/dist/index.js --root /path/to/your/repo --http   # http://127.0.0.1:8765/mcp
+node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo          # stdio (default)
+node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo --http   # http://127.0.0.1:8765/mcp
 ```
 
 - **Tools** (all read-only): `sbd_validate_manifest`, `sbd_check`, `sbd_scan_text`, `sbd_review_diff`, `sbd_list_controls`, `sbd_explain_control`, `sbd_plan_scaffold`.
@@ -102,7 +101,7 @@ node /path/to/ai-secure-by-design/mcp-server/dist/index.js --root /path/to/your/
 /plugin install ankush1982/ai-secure-by-design
 ```
 
-The plugin ships source only, so build the engine once in the plugin's install directory (`npm ci`). Without a build, the MCP server will not start, and the PreToolUse secret hook falls back to a `grep -P` + `jq` scan.
+The engine ships prebuilt as two self-contained bundles, `dist/sbd.mjs` (CLI) and `dist/sbd-mcp.mjs` (MCP server), so it needs only Node.js 20+ with no `npm install`. If Node is missing, the PreToolUse secret hook falls back to a `grep -P` + `jq` scan. The bundles are rebuilt with `npm run build`, and `npm test` fails if they no longer match the source in `mcp-server/src/`.
 
 Slash commands: `/sbd-init`, `/sbd-deploy`, `/sbd-check` (now reports the engine's results instead of doing the checks in prose), `/sbd-add`.
 

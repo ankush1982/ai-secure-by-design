@@ -18,7 +18,7 @@ Checks that must give the same answer every time are done by the `sbd` engine, n
 <!-- platform: claude -->
 - Use the plugin's MCP tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`.
 - Slash commands: `/sbd-init` (write the manifest), `/sbd-deploy` (scaffolds and hooks), `/sbd-check` (gap report), `/sbd-add` (one control).
-- If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/cli.js" check`.
+- If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" check`.
 <!-- /platform -->
 <!-- platform: agents,gemini,copilot,cursor -->
 - If the `secure-by-design` MCP server is configured, use its tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`. Its prompts `sbd-init`, `sbd-check` and `sbd-deploy` cover setup, checking and scaffolding.
