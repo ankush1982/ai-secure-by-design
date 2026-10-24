@@ -1,0 +1,26 @@
+# Hooks for the pre-commit framework (https://pre-commit.com). They run the same sbd
+# engine as CI and the MCP server, so the result does not depend on which AI wrote the code.
+- id: sbd-secrets
+  name: secure-by-design secret scan
+  description: Block commits that add hardcoded secrets (NIST SSDF PS.1.1).
+  entry: sbd scan --staged --fail-on high
+  language: node
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit]
+
+- id: sbd-check
+  name: secure-by-design check (staged lines)
+  description: Run sbd check on the lines this commit adds.
+  entry: sbd check --staged --fail-on high
+  language: node
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit]
+
+- id: sbd-provenance
+  name: secure-by-design provenance tag
+  description: Require [human], [ai-human-pair], [ai:<model>] or an AI-Assistance trailer (NIST SSDF PS.3.1).
+  entry: sbd provenance
+  language: node
+  stages: [commit-msg]

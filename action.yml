@@ -1,0 +1,66 @@
+name: secure-by-design check
+description: Run sbd check, upload SARIF to code scanning, and fail the build on findings.
+author: ankush1982
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  manifest:
+    description: Path to the manifest, relative to the repository root.
+    default: privacy-security-manifest.yaml
+  fail-on:
+    description: Lowest severity that fails the job (critical, high, medium, low, info, none).
+    default: high
+  diff:
+    description: Only report lines added in this git range (e.g. origin/main...HEAD). Empty checks the whole repository.
+    default: ''
+  upload-sarif:
+    description: Upload results to GitHub code scanning (needs security-events write permission).
+    default: 'true'
+
+outputs:
+  sarif-file:
+    description: Path of the SARIF report.
+    value: ${{ steps.check.outputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run sbd check
+      id: check
+      shell: bash
+      env:
+        SBD_MANIFEST: ${{ inputs.manifest }}
+        SBD_FAIL_ON: ${{ inputs.fail-on }}
+        SBD_DIFF: ${{ inputs.diff }}
+        SBD_CLI: ${{ github.action_path }}/dist/sbd.mjs
+      run: |
+        set +e
+        args=(check --root "$GITHUB_WORKSPACE" --manifest "$SBD_MANIFEST")
+        if [ -n "$SBD_DIFF" ]; then args+=(--diff "$SBD_DIFF"); fi
+        out="$RUNNER_TEMP/sbd.sarif"
+        node "$SBD_CLI" "${args[@]}" --format sarif --output "$out" --fail-on none
+        status=$?
+        [ $status -ne 0 ] && exit $status
+        echo "sarif-file=$out" >> "$GITHUB_OUTPUT"
+        node "$SBD_CLI" "${args[@]}" --format text --fail-on "$SBD_FAIL_ON" | tee "$RUNNER_TEMP/sbd.txt"
+        echo "status=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+    - name: Upload SARIF
+      if: ${{ always() && inputs.upload-sarif == 'true' && steps.check.outputs.sarif-file != '' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.check.outputs.sarif-file }}
+        category: secure-by-design
+
+    - name: Fail on findings
+      if: ${{ steps.check.outputs.status != '0' }}
+      shell: bash
+      run: |
+        echo "::error::sbd check found issues at or above '${{ inputs.fail-on }}'. See the report above or the code scanning tab."
+        exit 1

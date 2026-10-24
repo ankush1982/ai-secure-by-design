@@ -1,0 +1,104 @@
+[
+  {
+    "ruleId": "SBD-SCAF-001",
+    "severity": "CRITICAL",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-004",
+    "severity": "CRITICAL",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-002",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-003",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-005",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-006",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-009",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-010",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-SCAF-011",
+    "severity": "HIGH",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-FIELD-001",
+    "severity": "HIGH",
+    "file": "prisma/schema.prisma",
+    "line": 5
+  },
+  {
+    "ruleId": "SBD-MANIFEST-005",
+    "severity": "HIGH",
+    "file": "privacy-security-manifest.yaml",
+    "line": null
+  },
+  {
+    "ruleId": "SBD-CODE-002",
+    "severity": "HIGH",
+    "file": "src/routes/patients.ts",
+    "line": 19
+  },
+  {
+    "ruleId": "SBD-CODE-003",
+    "severity": "HIGH",
+    "file": "src/services/triage.ts",
+    "line": 6
+  },
+  {
+    "ruleId": "SBD-SCAF-008",
+    "severity": "MEDIUM",
+    "file": null,
+    "line": null
+  },
+  {
+    "ruleId": "SBD-MANIFEST-008",
+    "severity": "MEDIUM",
+    "file": "privacy-security-manifest.yaml",
+    "line": null
+  },
+  {
+    "ruleId": "SBD-CODE-001",
+    "severity": "MEDIUM",
+    "file": "src/routes/patients.ts",
+    "line": 12
+  },
+  {
+    "ruleId": "SBD-MANIFEST-007",
+    "severity": "LOW",
+    "file": "privacy-security-manifest.yaml",
+    "line": null
+  }
+]

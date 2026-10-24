@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ankush1982/ai-secure-by-design/schemas/rules.schema.json",
+  "title": "Check rules (rules/*.yaml)",
+  "oneOf": [
+    { "$ref": "#/definitions/ruleFile" },
+    { "$ref": "#/definitions/personalFieldsFile" }
+  ],
+  "definitions": {
+    "severity": { "type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"] },
+    "ruleId": { "type": "string", "pattern": "^SBD-[A-Z]+-[0-9]{3}$" },
+    "condition": {
+      "type": "string",
+      "pattern": "^(regime:[a-z0-9.-]+|personalData|sensitiveData|childrenData|aiSystems|highRiskAi|humanOversight|healthcare)$"
+    },
+    "regimeRef": {
+      "type": "object",
+      "required": ["regime", "control"],
+      "additionalProperties": false,
+      "properties": {
+        "regime": { "type": "string" },
+        "control": { "type": "string" }
+      }
+    },
+    "regex": {
+      "type": "object",
+      "required": ["pattern"],
+      "additionalProperties": false,
+      "properties": {
+        "pattern": { "type": "string" },
+        "flags": { "type": "string", "pattern": "^[imsu]*$" },
+        "before": { "type": "integer", "minimum": 0 },
+        "after": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ruleFile": {
+      "type": "object",
+      "required": ["schemaVersion", "rules"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "type": "string", "enum": ["0.2"] },
+        "rules": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "title", "kind", "severity"],
+      "properties": {
+        "id": { "$ref": "#/definitions/ruleId" },
+        "title": { "type": "string" },
+        "kind": { "type": "string", "enum": ["secret", "code", "scaffold"] },
+        "severity": { "$ref": "#/definitions/severity" },
+        "severityWhen": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["condition", "severity"],
+            "additionalProperties": false,
+            "properties": {
+              "condition": { "$ref": "#/definitions/condition" },
+              "severity": { "$ref": "#/definitions/severity" }
+            }
+          }
+        },
+        "when": { "type": "array", "items": { "$ref": "#/definitions/condition" } },
+        "files": { "type": "array", "items": { "type": "string", "pattern": "^\\.[A-Za-z0-9]+$" } },
+        "pattern": { "type": "string" },
+        "flags": { "type": "string", "pattern": "^[imsu]*$" },
+        "mustAlsoMatch": { "$ref": "#/definitions/regex" },
+        "unlessNearby": { "$ref": "#/definitions/regex" },
+        "dir": { "type": "string" },
+        "name": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "template": { "type": "string" },
+        "regimes": { "type": "array", "items": { "$ref": "#/definitions/regimeRef" } },
+        "message": { "type": "string" },
+        "remediation": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "enum": ["secret", "code"] } } },
+          "then": { "required": ["pattern", "message"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "scaffold" } } },
+          "then": { "required": ["dir", "name", "template"] }
+        }
+      ]
+    },
+    "personalFieldsFile": {
+      "type": "object",
+      "required": ["schemaVersion", "ruleId", "severity", "tokens"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "type": "string", "enum": ["0.2"] },
+        "ruleId": { "$ref": "#/definitions/ruleId" },
+        "severity": { "$ref": "#/definitions/severity" },
+        "regimes": { "type": "array", "items": { "$ref": "#/definitions/regimeRef" } },
+        "tokens": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9]+$" } },
+        "exactOnly": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9]+$" } }
+      }
+    }
+  }
+}

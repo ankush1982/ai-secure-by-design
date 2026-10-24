@@ -1,7 +1,7 @@
 {
   "name": "secure-by-design",
   "displayName": "Secure & Private by Design",
-  "version": "0.1.0",
+  "version": "0.2.0-dev",
   "description": "Privacy-by-design and secure-by-design controls for products subject to NIST SSDF, ISO 27001:2022, and India DPDP Act 2023. Profiles your project, asks which regimes apply, then deploys dev-loop guardrails and product-code scaffolds.",
   "author": {
     "name": "Ankush Jain",
@@ -33,13 +33,18 @@
     "dpdp-2023"
   ],
   "supportedStacks": [
-    "typescript-express",
-    "typescript-nextjs",
-    "python-fastapi"
+    "typescript-express"
   ],
   "commands": "./commands",
   "agents": "./agents",
   "skills": "./skills",
   "hooks": "./hooks/hooks.json",
-  "mcpServers": "./mcp-server/server.json"
+  "mcpServers": {
+    "secure-by-design": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/dist/sbd-mcp.mjs"
+      ]
+    }
+  }
 }

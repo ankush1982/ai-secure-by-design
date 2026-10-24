@@ -7,6 +7,7 @@
 # management, BCP, physical security, HR, etc.) — those are ISMS-scope and
 # require organizational policies, audits, and management commitment.
 
+schemaVersion: "0.2"
 id: iso-27001-2022
 name: ISO/IEC 27001:2022 — Information Security Management Systems
 version: "2022"

@@ -2,7 +2,7 @@
 // Maps to: ISO 27001 A.8.10 (Information Deletion).
 // Reads from ../../privacy-security-manifest.yaml.
 // Safe to modify. Safe to delete. Re-run /sbd-deploy to regenerate.
-// Docs: docs/scaffolds/retention-runner.md
+// Docs: docs/scaffolds/retention_runner.md
 //
 // Runs daily (or on-demand). For each dataCategory in the manifest, finds
 // records past their retentionDays and either erases or anonymizes them.

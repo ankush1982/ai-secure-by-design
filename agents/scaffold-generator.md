@@ -8,7 +8,7 @@ You generate exactly one scaffold per invocation. Your caller (`/sbd-deploy` or 
 
 ## Inputs (from caller)
 
-- `templateName`: the scaffold key (e.g. `consent`, `dsr-handler`, `audit-log`, `children-gate`, `phi-redaction`, `ai-decision-log`, `human-oversight`, `rbac`, `security-headers`, `breach-notifier`, `retention-runner`)
+- `templateName`: the scaffold key, which is also the template file name without extension (e.g. `consent`, `dsr_handler`, `audit_log`, `children_gate`, `phi_redaction`, `decision_log`, `human_oversight`, `rbac`, `security_headers`, `breach_notifier`, `retention_runner`)
 - `stack`: `typescript-express` | `typescript-nextjs` | `python-fastapi`
 - `manifest`: parsed `privacy-security-manifest.yaml` contents
 - `force`: boolean — overwrite existing user edits if true
@@ -26,16 +26,16 @@ Map template → target path in the user's repo:
 | templateName | TypeScript target | Python target |
 |---|---|---|
 | `consent` | `src/privacy/consent.ts` | `src/privacy/consent.py` |
-| `dsr-handler` | `src/privacy/dsr_handler.ts` | `src/privacy/dsr_handler.py` |
-| `retention-runner` | `src/privacy/retention_runner.ts` | `src/privacy/retention_runner.py` |
-| `breach-notifier` | `src/privacy/breach_notifier.ts` | `src/privacy/breach_notifier.py` |
-| `children-gate` | `src/privacy/children_gate.ts` | `src/privacy/children_gate.py` |
+| `dsr_handler` | `src/privacy/dsr_handler.ts` | `src/privacy/dsr_handler.py` |
+| `retention_runner` | `src/privacy/retention_runner.ts` | `src/privacy/retention_runner.py` |
+| `breach_notifier` | `src/privacy/breach_notifier.ts` | `src/privacy/breach_notifier.py` |
+| `children_gate` | `src/privacy/children_gate.ts` | `src/privacy/children_gate.py` |
 | `rbac` | `src/security/rbac.ts` | `src/security/rbac.py` |
-| `audit-log` | `src/security/audit_log.ts` | `src/security/audit_log.py` |
-| `security-headers` | `src/security/security_headers.ts` | `src/security/security_headers.py` |
-| `phi-redaction` | `src/security/phi_redaction.ts` | `src/security/phi_redaction.py` |
-| `ai-decision-log` | `src/ai/decision_log.ts` | `src/ai/decision_log.py` |
-| `human-oversight` | `src/ai/human_oversight.ts` | `src/ai/human_oversight.py` |
+| `audit_log` | `src/security/audit_log.ts` | `src/security/audit_log.py` |
+| `security_headers` | `src/security/security_headers.ts` | `src/security/security_headers.py` |
+| `phi_redaction` | `src/security/phi_redaction.ts` | `src/security/phi_redaction.py` |
+| `decision_log` | `src/ai/decision_log.ts` | `src/ai/decision_log.py` |
+| `human_oversight` | `src/ai/human_oversight.ts` | `src/ai/human_oversight.py` |
 
 ### 3. Check existing file
 

@@ -1,0 +1,59 @@
+# Code rules for `sbd check`. Each rule matches lines in source files.
+#   pattern          — line must match
+#   mustAlsoMatch    — the same line must also match; the token {{personalFields}} expands to
+#                      the manifest's classified field names (falls back to defaultPersonalTokens)
+#   unlessNearby     — suppress the finding if this pattern appears within `before`/`after` lines
+#                      (the `after` window ends at the next line matching `pattern`)
+#   when             — conditions on the manifest; all must hold (see README "Rule conditions")
+schemaVersion: "0.2"
+rules:
+  - id: SBD-CODE-001
+    title: Mutation handler without audit log
+    kind: code
+    severity: MEDIUM
+    when: ["regime:iso-27001-2022"]
+    files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py"]
+    pattern: '(\b(app|router|server|api)\.(post|put|patch|delete)\s*\(|@(app|router|api)\.(post|put|patch|delete)\s*\(|export\s+(async\s+)?function\s+(POST|PUT|PATCH|DELETE)\b)'
+    unlessNearby:
+      pattern: '\b(auditLog|audit_log)\s*\('
+      before: 0
+      after: 40
+    regimes:
+      - { regime: iso-27001-2022, control: logging }
+      - { regime: dpdp-2023, control: data-fiduciary-duties }
+    message: Handler mutates data without an auditLog() call within 40 lines.
+    remediation: "Call auditLog({ actor, action, target }) from src/security/audit_log in the handler."
+
+  - id: SBD-CODE-002
+    title: Personal data written to logs
+    kind: code
+    severity: HIGH
+    when: ["personalData"]
+    files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".rb"]
+    pattern: '(console\.(log|info|warn|error|debug)|logger\.(info|warn|error|debug|log)|logging\.(info|warning|error|debug)|\bprint\(|println!?\(|fmt\.Print)'
+    mustAlsoMatch:
+      pattern: '\b({{personalFields}})\b'
+      flags: i
+    regimes:
+      - { regime: iso-27001-2022, control: data-masking }
+      - { regime: dpdp-2023, control: data-fiduciary-duties }
+    message: Log call references a field the manifest classifies as personal or sensitive.
+    remediation: Route the value through the redacting logger in src/security/audit_log.
+
+  - id: SBD-CODE-003
+    title: AI inference without decision log
+    kind: code
+    severity: MEDIUM
+    severityWhen:
+      - { condition: "highRiskAi", severity: HIGH }
+    when: ["aiSystems"]
+    files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py"]
+    pattern: '(\.chat\.completions\.create\s*\(|\.responses\.create\s*\(|\.messages\.create\s*\(|\.generateContent\s*\(|\bgenerateText\s*\(|\bstreamText\s*\()'
+    unlessNearby:
+      pattern: '\b(decisionLog|decision_log|logDecision|log_decision)\b'
+      before: 15
+      after: 15
+    regimes:
+      - { regime: iso-27001-2022, control: logging }
+    message: Model inference call with no decision-log call within 15 lines.
+    remediation: "Wrap the call: decisionLog('<aiSystem name>', () => <call>) from src/ai/decision_log."

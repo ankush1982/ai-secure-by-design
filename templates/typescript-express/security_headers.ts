@@ -2,7 +2,7 @@
 // Maps to: ISO 27001 A.8.26 / A.8.28, NIST SSDF PW.9.
 // Reads from ../../privacy-security-manifest.yaml.
 // Safe to modify. Safe to delete. Re-run /sbd-deploy to regenerate.
-// Docs: docs/scaffolds/security-headers.md
+// Docs: docs/scaffolds/security_headers.md
 
 import type { Request, Response, NextFunction } from 'express';
 

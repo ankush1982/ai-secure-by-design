@@ -31,7 +31,7 @@ All generated code is an **opinionated starting point**. You must:
 
 The regime catalog YAML files (`regimes/*.yaml`) reflect the author's good-faith interpretation of public standards and statutes as of the version date. They are **not** authoritative interpretations.
 
-Standards and laws change. The DPDP Act 2023 rules are still being finalized at time of v0.1. NIST SSDF has revision cycles. ISO 27001:2022 may be superseded. You are responsible for verifying current applicability.
+Standards and laws change. The DPDP Rules, 2025 (notified 13 Nov 2025, G.S.R. 846(E)) commence in phases and are not yet mapped by the regime catalogue. NIST SSDF has revision cycles. ISO 27001:2022 may be superseded. You are responsible for verifying current applicability.
 
 ## Healthcare and AI use
 

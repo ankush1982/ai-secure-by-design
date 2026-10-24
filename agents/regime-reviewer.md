@@ -6,6 +6,8 @@ tools: [Read, Glob, Grep, Bash]
 
 You review code changes against the manifest's declared regimes. You do NOT modify code. You report findings.
 
+**Start with the engine.** Run `node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" check --diff <base>...HEAD --format json` (or call the `sbd_review_diff` MCP tool with `range`). Its findings are deterministic and are the same ones CI reports; include them unchanged. The tables below add checks that need judgement (input validation, new dependencies, role design). Label those findings "judgement" so readers can tell them apart.
+
 ## Inputs
 
 - Diff to review (provided by caller — could be `git diff main...HEAD`, `git diff --staged`, or a specific PR)

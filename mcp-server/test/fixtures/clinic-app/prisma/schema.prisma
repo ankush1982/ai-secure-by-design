@@ -1,0 +1,8 @@
+model Patient {
+  id           String   @id
+  email        String
+  phone        String
+  dateOfBirth  DateTime
+  diagnosis    String
+  createdAt    DateTime
+}

@@ -2,7 +2,7 @@
 // Aligns with ISO/IEC 42001 §8.3 and EU AI Act Art. 14 patterns.
 // Reads from ../../privacy-security-manifest.yaml.
 // Safe to modify. Safe to delete. Re-run /sbd-deploy to regenerate.
-// Docs: docs/scaffolds/human-oversight.md
+// Docs: docs/scaffolds/human_oversight.md
 //
 // For AI systems whose manifest declares humanOversight != 'none', any path
 // from AI output → user-facing action MUST flow through this gate.

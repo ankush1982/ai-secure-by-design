@@ -1,5 +1,5 @@
 ---
-description: Add a single control after initial deploy. Usage. /sbd-add <control-name> — e.g. /sbd-add children-gate
+description: Add a single control after initial deploy. Usage. /sbd-add <control-name> — e.g. /sbd-add children_gate
 allowed-tools: [Read, Write, Edit, Glob, Bash, Agent]
 ---
 
@@ -12,16 +12,16 @@ The user passes a control name after `/sbd-add`. Supported names (v0.1):
 | Name | What it adds |
 |---|---|
 | `consent` | DPDP §6 consent recording + verification |
-| `dsr-handler` | DPDP §11–14 data principal rights endpoints |
-| `retention-runner` | DPDP §8(7) retention enforcement job |
-| `breach-notifier` | DPDP §8(6) breach notification stub |
-| `children-gate` | DPDP §9 verifiable parental consent |
+| `dsr_handler` | DPDP §11–14 data principal rights endpoints |
+| `retention_runner` | DPDP §8(7) retention enforcement job |
+| `breach_notifier` | DPDP §8(6) breach notification stub |
+| `children_gate` | DPDP §9 verifiable parental consent |
 | `rbac` | ISO 27001 A.5.15 / A.8.3 role-based access control |
-| `audit-log` | ISO 27001 A.8.15 PII-redacting audit logger |
-| `security-headers` | OWASP-aligned security headers middleware |
-| `phi-redaction` | Healthcare-specific PHI redaction helper |
-| `ai-decision-log` | Log every AI inference + inputs + outputs |
-| `human-oversight` | Mandatory-review gate for high-risk AI decisions |
+| `audit_log` | ISO 27001 A.8.15 PII-redacting audit logger |
+| `security_headers` | OWASP-aligned security headers middleware |
+| `phi_redaction` | Healthcare-specific PHI redaction helper |
+| `decision_log` | Log every AI inference + inputs + outputs |
+| `human_oversight` | Mandatory-review gate for high-risk AI decisions |
 
 ## Behavior
 
@@ -29,7 +29,7 @@ The user passes a control name after `/sbd-add`. Supported names (v0.1):
 
 2. Look up the requested control. If not in the supported list, suggest the closest match and exit.
 
-3. **Check regime alignment.** Each control maps to a regime. If the regime is not in the manifest, warn the user and ask whether to proceed (e.g. user adds `children-gate` without DPDP in their regimes — possible they want it for general best practice, but worth confirming).
+3. **Check regime alignment.** Each control maps to a regime. If the regime is not in the manifest, warn the user and ask whether to proceed (e.g. user adds `children_gate` without DPDP in their regimes — possible they want it for general best practice, but worth confirming).
 
 4. Run the **scaffold-generator subagent** with the specific template path and target path.
 
@@ -38,11 +38,11 @@ The user passes a control name after `/sbd-add`. Supported names (v0.1):
 6. **Print** what was added and what the user should review:
 
 ```
-✓ Added src/privacy/children-gate.ts (DPDP §9)
+✓ Added src/privacy/children_gate.ts (DPDP §9)
 ✓ Updated .github/PULL_REQUEST_TEMPLATE.md
 
 Review next:
-  - src/privacy/children-gate.ts — adapt the consent-verification flow to your auth system
+  - src/privacy/children_gate.ts — adapt the consent-verification flow to your auth system
   - Set parent-consent verification provider in privacy-security-manifest.yaml::securityControls.parentConsentProvider
   - docs/scaffolds/children-gate.md for the contract this scaffold expects
 

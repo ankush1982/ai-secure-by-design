@@ -19,22 +19,22 @@ Look up the stack in the manifest (`typescript-express`, `typescript-nextjs`, `p
 
 **Privacy layer (DPDP)**
 - `src/privacy/consent.ts` — record + verify DPDP §6 consent
-- `src/privacy/dsr-handler.ts` — DPDP §11–14 data principal rights endpoints
-- `src/privacy/retention-runner.ts` — DPDP §8(7) retention enforcement
-- `src/privacy/breach-notifier.ts` — DPDP §8(6) breach notification stub
-- `src/privacy/children-gate.ts` — DPDP §9 verifiable parental consent (only if any dataCategory has `childrenDataPossible: true`)
+- `src/privacy/dsr_handler.ts` — DPDP §11–14 data principal rights endpoints
+- `src/privacy/retention_runner.ts` — DPDP §8(7) retention enforcement
+- `src/privacy/breach_notifier.ts` — DPDP §8(6) breach notification stub
+- `src/privacy/children_gate.ts` — DPDP §9 verifiable parental consent (only if any dataCategory has `childrenDataPossible: true`)
 
 **Security layer (ISO 27001 + SSDF)**
 - `src/security/rbac.ts` — ISO 27001 A.5.15 / A.8.3 access control
-- `src/security/audit-log.ts` — ISO 27001 A.8.15 logging (PII-redacting)
-- `src/security/security-headers.ts` — OWASP defaults
+- `src/security/audit_log.ts` — ISO 27001 A.8.15 logging (PII-redacting)
+- `src/security/security_headers.ts` — OWASP defaults
 
 **Healthcare-specific (only if `regimes` includes any AND `dataCategories` has any with `sensitivity: sensitive-personal` AND product domain is healthcare per the manifest)**
-- `src/security/phi-redaction.ts` — clinical-data redaction helper
+- `src/security/phi_redaction.ts` — clinical-data redaction helper
 
 **AI layer (only if `aiSystems` is non-empty)**
-- `src/ai/decision-log.ts` — AI decision logging
-- `src/ai/human-oversight.ts` — human-in-the-loop gate (only if any aiSystem has `humanOversight != none`)
+- `src/ai/decision_log.ts` — AI decision logging
+- `src/ai/human_oversight.ts` — human-in-the-loop gate (only if any aiSystem has `humanOversight != none`)
 
 ### Dev-loop artifacts
 
@@ -62,7 +62,7 @@ Look up the stack in the manifest (`typescript-express`, `typescript-nextjs`, `p
 ```
 Deployed N scaffolds:
   ✓ src/privacy/consent.ts (DPDP §6)
-  ✓ src/privacy/dsr-handler.ts (DPDP §11–14)
+  ✓ src/privacy/dsr_handler.ts (DPDP §11–14)
   ...
 
 Skipped M existing files (use --force to re-generate).
