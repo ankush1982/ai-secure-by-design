@@ -1,0 +1,3 @@
+# Keep LF on every platform. Windows checkouts otherwise get CRLF, which makes the
+# committed dist/ bundles look stale and stops bash running the hook scripts.
+* text=auto eol=lf
