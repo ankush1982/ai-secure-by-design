@@ -7,6 +7,7 @@ schemaVersion: "0.2"
 ruleId: SBD-FIELD-001
 severity: HIGH
 regimes:
+  - { regime: ai-security-wiki, control: AI-CTRL-017 }
   - { regime: iso-27001-2022, control: pii-protection }
   - { regime: dpdp-2023, control: data-fiduciary-duties }
 tokens:

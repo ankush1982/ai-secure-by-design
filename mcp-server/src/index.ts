@@ -6,7 +6,7 @@
 //   sbd-mcp --http [--port 8765]  Streamable HTTP on 127.0.0.1 (opt-in)
 //
 // Tools (all read-only): sbd_validate_manifest, sbd_check, sbd_scan_text, sbd_review_diff,
-// sbd_list_controls, sbd_explain_control, sbd_plan_scaffold.
+// sbd_list_controls, sbd_explain_control, sbd_plan_scaffold, sbd_evidence_plan.
 // Prompts: sbd-init, sbd-check, sbd-deploy. Resources: regime catalogues, schemas, manifest.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { assetPath } from './core/assets.js';
 import {
   confine,
+  evidencePlan,
   explainControl,
   listControls,
   loadManifest,
@@ -154,6 +155,18 @@ export function buildServer(root: string): McpServer {
         const out = explainControl(regime, control);
         return out ? json(out) : error(`unknown control ${regime}/${control}`);
       }),
+  );
+
+  server.registerTool(
+    'sbd_evidence_plan',
+    {
+      title: 'Audit evidence plan',
+      description:
+        'For each AI Security Wiki control: what the engine can check, what it found here, and the evidence and audit test a reviewer needs. Reports observations, never a verdict.',
+      inputSchema: { manifestPath: manifestArg, tier: z.enum(['baseline', 'advanced']).optional() },
+      annotations: READ_ONLY,
+    },
+    async ({ manifestPath, tier }) => guard(() => json(evidencePlan({ root, manifestPath, tier }))),
   );
 
   server.registerTool(

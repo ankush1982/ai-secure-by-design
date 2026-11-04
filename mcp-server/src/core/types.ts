@@ -9,6 +9,9 @@ export function severityAtLeast(s: Severity, threshold: Severity): boolean {
   return SEVERITY_ORDER.indexOf(s) >= SEVERITY_ORDER.indexOf(threshold);
 }
 
+/** The opt-in regime generated from the AI Security Wiki. */
+export const WIKI_REGIME = 'ai-security-wiki';
+
 export interface RegimeRef {
   regime: string;
   control: string;
@@ -38,7 +41,7 @@ export interface RegexSpec {
 export interface Rule {
   id: string;
   title: string;
-  kind: 'secret' | 'code' | 'scaffold';
+  kind: 'secret' | 'code' | 'scaffold' | 'mcp-config';
   severity: Severity;
   severityWhen?: Array<{ condition: Condition; severity: Severity }>;
   when?: Condition[];
@@ -71,6 +74,16 @@ export interface RegimeControl {
   description: string;
   implementation: string;
   severity: Severity;
+  name?: string;
+  family?: string;
+  tier?: string;
+  evidence?: string;
+  auditTest?: string;
+  owner?: string;
+  reviewFrequency?: string;
+  url?: string;
+  risks?: string[];
+  testCases?: string[];
 }
 
 export interface Regime {

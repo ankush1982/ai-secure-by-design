@@ -167,7 +167,7 @@ test('explain and controls commands', () => {
   const ex = JSON.parse(sbd(['explain', 'iso-27001-2022', 'logging']).stdout);
   assert.ok(ex.checkedBy.some((r) => r.id === 'SBD-CODE-001'));
   assert.equal(sbd(['explain', 'iso-27001-2022', 'nope']).code, 2);
-  assert.equal(JSON.parse(sbd(['controls']).stdout).length, 3);
+  assert.equal(JSON.parse(sbd(['controls']).stdout).length, 4);
 });
 
 test('provenance hook accepts tags and trailers, rejects untagged messages', () => {

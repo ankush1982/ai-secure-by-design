@@ -7,7 +7,7 @@
 // Every AI inference flows through this wrapper. It records:
 //   - which AI system (matches aiSystems[].name in manifest)
 //   - the input categories (without raw PHI/PII — only category names)
-//   - the output (or its hash if too large / sensitive)
+//   - a hash of the output (and a redacted preview, only if you set a redactor)
 //   - latency, model id, prompt+response token counts
 //   - whether human oversight gate was invoked (and outcome)
 //
@@ -16,7 +16,6 @@
 
 import { createHash } from 'node:crypto';
 import { auditLog } from '../security/audit_log';
-import { phiRedact } from '../security/phi_redaction';
 
 export interface DecisionContext {
   systemName: string;        // matches manifest.aiSystems[].name
@@ -59,9 +58,16 @@ function hashOf(value: unknown): string {
   return createHash('sha256').update(s).digest('hex');
 }
 
-function previewOf(value: unknown): string {
+// Off by default: pattern-based redaction misses names and clinical free text, so a preview
+// of model output can leak personal data into the log. Opt in with a redactor you trust,
+// for example setPreviewRedactor(phiRedact) from ../security/phi_redaction.
+let previewRedactor: ((text: string) => string) | null = null;
+export function setPreviewRedactor(r: (text: string) => string): void { previewRedactor = r; }
+
+function previewOf(value: unknown): string | undefined {
+  if (!previewRedactor) return undefined;
   const s = typeof value === 'string' ? value : JSON.stringify(value);
-  return phiRedact(s.slice(0, 200));
+  return previewRedactor(s.slice(0, 200));
 }
 
 /**

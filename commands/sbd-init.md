@@ -34,6 +34,7 @@ Use **AskUserQuestion** (or plain prose if unavailable) for each:
 - NIST SSDF 1.1 — secure SDLC baseline (recommended for everyone)
 - ISO 27001:2022 — information security management
 - DPDP Act 2023 (India) — Digital Personal Data Protection
+- AI Security Wiki — community AI control library plus AI-specific checks (model output, model loading, MCP servers, agent permissions). Suggest it if AI SDKs or an MCP configuration were detected. It is a reference, not a law.
 
 **Q3 — Deployment region.** "Where will this product operate? [India / EU / US / Global]" — drives DPDP §16 cross-border-transfer defaults.
 

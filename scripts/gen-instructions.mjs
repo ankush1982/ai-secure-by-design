@@ -14,6 +14,12 @@ const NOTICE = '<!-- GENERATED from instructions/agent-instructions.md by script
 // far as we know; check each tool's current docs (see README "Platform support").
 const TARGETS = [
   { platform: 'claude', path: 'CLAUDE.md' },
+  // A plugin's root CLAUDE.md is not loaded in the user's project; a skill is.
+  {
+    platform: 'claude',
+    path: 'skills/sbd-project-rules/SKILL.md',
+    front: '---\nname: sbd-project-rules\ndescription: Working rules for a project that has privacy-security-manifest.yaml. Use before writing code that touches personal data, logging, data-changing endpoints, AI inference calls, children\'s data or cross-border transfers, and when reporting sbd findings.\n---\n',
+  },
   { platform: 'agents', path: 'templates/agent-instructions/AGENTS.md' },
   { platform: 'gemini', path: 'templates/agent-instructions/GEMINI.md' },
   { platform: 'copilot', path: 'templates/agent-instructions/.github/copilot-instructions.md' },

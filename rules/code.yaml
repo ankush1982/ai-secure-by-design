@@ -5,6 +5,9 @@
 #   unlessNearby     — suppress the finding if this pattern appears within `before`/`after` lines
 #                      (the `after` window ends at the next line matching `pattern`)
 #   when             — conditions on the manifest; all must hold (see README "Rule conditions")
+#
+# To accept one line after review, add a comment containing `sbd: ignore SBD-CODE-001`
+# (`aiwiki: ignore` also works) and record why. Secret rules cannot be ignored this way.
 schemaVersion: "0.2"
 rules:
   - id: SBD-CODE-001
@@ -19,6 +22,7 @@ rules:
       before: 0
       after: 40
     regimes:
+      - { regime: ai-security-wiki, control: AI-CTRL-008 }
       - { regime: iso-27001-2022, control: logging }
       - { regime: dpdp-2023, control: data-fiduciary-duties }
     message: Handler mutates data without an auditLog() call within 40 lines.
@@ -35,6 +39,7 @@ rules:
       pattern: '\b({{personalFields}})\b'
       flags: i
     regimes:
+      - { regime: ai-security-wiki, control: AI-CTRL-017 }
       - { regime: iso-27001-2022, control: data-masking }
       - { regime: dpdp-2023, control: data-fiduciary-duties }
     message: Log call references a field the manifest classifies as personal or sensitive.
@@ -54,6 +59,7 @@ rules:
       before: 15
       after: 15
     regimes:
+      - { regime: ai-security-wiki, control: AI-CTRL-008 }
       - { regime: iso-27001-2022, control: logging }
     message: Model inference call with no decision-log call within 15 lines.
     remediation: "Wrap the call: decisionLog('<aiSystem name>', () => <call>) from src/ai/decision_log."

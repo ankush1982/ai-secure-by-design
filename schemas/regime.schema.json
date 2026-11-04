@@ -49,7 +49,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[a-z0-9][a-z0-9-]*$"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*$"
           },
           "section": {
             "type": "string",
@@ -75,6 +75,52 @@
           },
           "implementation": {
             "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Short name."
+          },
+          "family": {
+            "type": "string",
+            "description": "Control family (wiki)."
+          },
+          "tier": {
+            "type": "string",
+            "description": "Baseline or Advanced (wiki)."
+          },
+          "evidence": {
+            "type": "string",
+            "description": "Evidence an auditor asks for (wiki)."
+          },
+          "auditTest": {
+            "type": "string",
+            "description": "How an auditor tests the control (wiki)."
+          },
+          "owner": {
+            "type": "string",
+            "description": "Usual control owner (wiki)."
+          },
+          "reviewFrequency": {
+            "type": "string",
+            "description": "How often to review the control (wiki)."
+          },
+          "url": {
+            "type": "string",
+            "description": "Page for this control."
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Risk register IDs (wiki)."
+          },
+          "testCases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Test cases that test this control (wiki)."
           },
           "severity": {
             "$ref": "#/definitions/severity"

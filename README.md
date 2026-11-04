@@ -11,6 +11,7 @@ Install once. Tell the plugin what your product does and which regulatory regime
 | **NIST SSDF 1.1** | Secure SDLC baseline — applies to every project |
 | **ISO 27001:2022** | Annex A controls relevant to the dev/SDLC slice (A.5.15, A.5.34, A.8.5, A.8.10–.12, A.8.15, A.8.24–.32) |
 | **DPDP Act 2023 (India)** | Notice, consent, data principal rights, retention, breach notification, children's data gate, Significant Data Fiduciary flagging |
+| **AI Security Wiki** (optional) | The community [AI Security Wiki](https://nachi065.github.io/AI-Security-Wiki/) control library (46 AI controls) plus AI-specific checks on model output, model loading, MCP servers and agent permissions. A practitioner reference, not a law. See [AI Security Wiki integration](#ai-security-wiki-integration) |
 
 | Stack | Status |
 |---|---|
@@ -91,7 +92,7 @@ node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo    
 node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo --http   # http://127.0.0.1:8765/mcp
 ```
 
-- **Tools** (all read-only): `sbd_validate_manifest`, `sbd_check`, `sbd_scan_text`, `sbd_review_diff`, `sbd_list_controls`, `sbd_explain_control`, `sbd_plan_scaffold`.
+- **Tools** (all read-only): `sbd_validate_manifest`, `sbd_check`, `sbd_scan_text`, `sbd_review_diff`, `sbd_list_controls`, `sbd_explain_control`, `sbd_plan_scaffold`, `sbd_evidence_plan`.
 - **Prompts**: `sbd-init`, `sbd-check`, `sbd-deploy` (from `instructions/prompts/`).
 - **Resources**: `sbd://regimes/{id}`, `sbd://schemas/{manifest,regime,rules}`, `sbd://manifest`.
 - Every path argument is confined to `--root`.
@@ -100,12 +101,35 @@ node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo --h
 ### Claude Code plugin
 
 ```bash
-/plugin install ankush1982/ai-secure-by-design
+/plugin marketplace add ankush1982/ai-secure-by-design
+/plugin install secure-by-design@ai-secure-by-design
 ```
 
-The engine ships prebuilt as two self-contained bundles, `dist/sbd.mjs` (CLI) and `dist/sbd-mcp.mjs` (MCP server), so it needs only Node.js 20+ with no `npm install`. If Node is missing, the PreToolUse secret hook falls back to a `grep -P` + `jq` scan. The bundles are rebuilt with `npm run build`, and `npm test` fails if they no longer match the source in `mcp-server/src/`.
+The engine ships prebuilt as two self-contained bundles, `dist/sbd.mjs` (CLI) and `dist/sbd-mcp.mjs` (MCP server), so it needs only Node.js 20+ with no `npm install`. If Node is missing, the PreToolUse secret hook falls back to a `grep -E` + `jq` scan. The bundles are rebuilt with `npm run build`, and `npm test` fails if they no longer match the source in `mcp-server/src/`.
 
-Slash commands: `/sbd-init`, `/sbd-deploy`, `/sbd-check` (now reports the engine's results instead of doing the checks in prose), `/sbd-add`.
+Slash commands: `/sbd-init`, `/sbd-deploy`, `/sbd-check` (now reports the engine's results instead of doing the checks in prose), `/sbd-add`, `/sbd-evidence`.
+
+## AI Security Wiki integration
+
+The [AI Security Wiki](https://nachi065.github.io/AI-Security-Wiki/) says what good looks like for AI systems. This engine checks your code against it. Add the wiki to your manifest to turn it on; nothing changes unless you do:
+
+```yaml
+regimes:
+  - id: ai-security-wiki
+```
+
+| What you get | How |
+|---|---|
+| **AI-specific checks** | `sbd check` runs the wiki's `AIW-*` rules: model output reaching `eval`, a shell, HTML or SQL; unsafe model loading; `trust_remote_code`; unpinned models and MCP servers; remote MCP over HTTP; auto-approved tools; agents run with approvals off |
+| **Findings tied to controls** | Every finding is tagged with the `AI-CTRL` IDs it supports, and SARIF links to the control's wiki page |
+| **The control library, offline** | `sbd explain ai-security-wiki AI-CTRL-045` gives the objective, evidence, audit test, owner, review frequency and test cases |
+| **An audit evidence plan** | `sbd evidence` shows every control as `gap`, `checked` or `manual`. `--format markdown` is for the team; `--format csv` fits the Controls sheet of the wiki's [audit workbook](https://nachi065.github.io/AI-Security-Wiki/25_Templates/05_AI_Security_Audit_and_Evidence_Checklist_Template.html). The MCP tool is `sbd_evidence_plan`; in Claude Code use `/sbd-evidence` |
+
+`checked` only means the automated checks found nothing, so it does not show a control works, and `Result` is left blank for a reviewer. `sbd evidence` also works without the regime, but then the `AIW-*` rules do not run.
+
+To accept one reviewed line of code, add a comment containing `sbd: ignore AIW-004` (or `aiwiki: ignore AIW-004`) and record why. Secret rules cannot be ignored this way.
+
+The data is generated from a wiki checkout with `npm run sync:wiki -- ../AI-Security-Wiki`; the commit it came from is at the top of `regimes/ai-security-wiki.yaml`. The wiki's own [Builder Toolkit](https://nachi065.github.io/AI-Security-Wiki/24_Builder_Track/05_Builder_Toolkit.html) offers the same AI rules in Python, with test case and risk look-ups.
 
 ## Platform support
 
@@ -128,9 +152,9 @@ The instruction files are generated from `instructions/agent-instructions.md` by
 ## What gets deployed
 
 **Dev-loop controls**:
-- 4 skills that fire as you write code (privacy-by-design, secure-by-design, dpdp-compliance, healthcare-ai)
+- 5 skills that fire as you write code (privacy-by-design, secure-by-design, dpdp-compliance, healthcare-ai, sbd-project-rules)
 - 3 subagents (profiler, scaffold-generator, regime-reviewer)
-- 4 slash commands (`/sbd-init`, `/sbd-deploy`, `/sbd-check`, `/sbd-add`)
+- 5 slash commands (`/sbd-init`, `/sbd-deploy`, `/sbd-check`, `/sbd-add`, `/sbd-evidence`)
 - Git hooks via the pre-commit framework: secret scan, staged-line `sbd check`, provenance-tag commit-msg gate
 - MCP server with read-only tools any MCP client can call
 - GitHub Action with SARIF upload
@@ -159,12 +183,12 @@ All scaffolds:
 
 - **NOT a compliance certification.** Implements common controls; does not constitute legal compliance or legal advice. See [LEGAL-DISCLAIMER.md](./LEGAL-DISCLAIMER.md).
 - **NOT a runtime SaaS.** Everything runs locally against your repo. No telemetry. The MCP server's HTTP mode is opt-in and listens on localhost by default.
-- **NOT an auditor's evidence collector.** Use Vanta / Drata / Anecdotes for that. This plugin focuses on getting the controls right at design and build time.
+- **NOT an auditor's evidence collector.** `sbd evidence` plans what to collect and reports what the checks saw. Collecting and storing evidence is a job for Vanta / Drata / Anecdotes or your own process.
 - **NOT a substitute for a Data Protection Officer or counsel** for regulated processing (DPDP Significant Data Fiduciary, ISO 27001 audit, HIPAA, etc.).
 
 ## License
 
-Apache-2.0. See [LICENSE](./LICENSE).
+Apache-2.0, see [LICENSE](./LICENSE), except `regimes/ai-security-wiki.yaml` and `rules/ai-wiki.yaml`, which are adapted from the AI Security Wiki under CC BY-SA 4.0. See [NOTICE](./NOTICE).
 
 ## Status
 

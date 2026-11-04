@@ -29,21 +29,30 @@ fi
 CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input | [.content?, .new_string?, (.edits[]?.new_string)] | map(select(. != null)) | join("\n")' 2>/dev/null)
 [ -z "$CONTENT" ] && exit 0
 
+# POSIX extended regular expressions only: macOS grep has no -P, and a failing grep looks
+# the same as "no match", so a PCRE pattern here silently scans nothing.
 PATTERNS=(
   'AKIA[0-9A-Z]{16}'                       # AWS Access Key ID
-  '(?i)aws_secret_access_key\s*[:=]\s*["'"'"'][A-Za-z0-9/+=]{40}["'"'"']'
   '-----BEGIN (RSA |EC |OPENSSH |DSA |PGP |ENCRYPTED )?PRIVATE KEY'
-  '(?i)(api[_-]?key|secret|password|passwd|token)\s*[:=]\s*["'"'"'][A-Za-z0-9+/=_-]{24,}["'"'"']'
   'sk-(proj-|ant-)?[A-Za-z0-9_-]{32,}'     # model-provider keys
   'xox[baprs]-[A-Za-z0-9-]{10,}'           # Slack tokens
   '(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}'  # GitHub tokens
   'AIza[0-9A-Za-z_-]{35}'                  # Google API keys
 )
+PATTERNS_ANY_CASE=(
+  'aws_secret_access_key[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9/+=]{40}["'"'"']'
+  '(api[_-]?key|secret|password|passwd|token)[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9+/=_-]{24,}["'"'"']'
+)
 
 FOUND=""
 for p in "${PATTERNS[@]}"; do
   # -e: patterns that start with dashes must not be read as grep options (R-D1).
-  if printf '%s' "$CONTENT" | grep -qP -e "$p" 2>/dev/null; then
+  if printf '%s' "$CONTENT" | grep -qE -e "$p"; then
+    FOUND="$FOUND  - $p\n"
+  fi
+done
+for p in "${PATTERNS_ANY_CASE[@]}"; do
+  if printf '%s' "$CONTENT" | grep -qEi -e "$p"; then
     FOUND="$FOUND  - $p\n"
   fi
 done

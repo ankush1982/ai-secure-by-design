@@ -33,6 +33,8 @@ The regime catalog YAML files (`regimes/*.yaml`) reflect the author's good-faith
 
 Standards and laws change. The DPDP Rules, 2025 (notified 13 Nov 2025, G.S.R. 846(E)) commence in phases and are not yet mapped by the regime catalogue. NIST SSDF has revision cycles. ISO 27001:2022 may be superseded. You are responsible for verifying current applicability.
 
+The `ai-security-wiki` regime and the `AIW-*` rules come from a community reference, not a law or a certifiable standard. A `checked` status from `sbd evidence` means the automated checks found nothing, not that a control is effective.
+
 ## Healthcare and AI use
 
 This plugin includes a `healthcare-ai` skill and PHI-redaction scaffold intended for AI products that touch clinical data. Such products may be subject to additional regulation (in India: Telemedicine Practice Guidelines 2020, CDSCO medical-device rules, draft DISHA, and others). The plugin does **not** address those regimes. Engage a healthcare-regulatory specialist before deploying any AI product that influences clinical decisions.

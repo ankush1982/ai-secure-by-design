@@ -1,5 +1,5 @@
 // Human-readable report, the format commands/sbd-check.md used to describe.
-import type { CheckResult } from './types.js';
+import { WIKI_REGIME, type CheckResult } from './types.js';
 
 export function toText(r: CheckResult): string {
   const lines: string[] = ['secure-by-design check report', '============================='];
@@ -15,6 +15,8 @@ export function toText(r: CheckResult): string {
     lines.push(`${String(i + 1).padStart(3)}. [${f.severity}] ${f.ruleId} ${where}${f.message}`);
     if (f.snippet) lines.push(`       ${f.snippet}`);
     if (f.remediation) lines.push(`       → ${f.remediation}`);
+    const wiki = f.regimes.filter((g) => g.regime === WIKI_REGIME).map((g) => g.control);
+    if (wiki.length) lines.push(`       Controls: ${wiki.join(', ')} (sbd explain ${WIKI_REGIME} <control>)`);
   });
   const s = r.summary;
   lines.push('', `${s.total} finding(s): ${s.CRITICAL} critical, ${s.HIGH} high, ${s.MEDIUM} medium, ${s.LOW} low, ${s.INFO} info.`);
