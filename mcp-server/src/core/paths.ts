@@ -15,9 +15,10 @@ export function confine(root: string, p: string): string {
 
 /** Whether a path to be written stays in the root once symlinks in its directory are followed. */
 export function resolvesInside(root: string, p: string): boolean {
+  const realRoot = realpathSync(root); // throws for a missing root, so the walk below ends
   let dir = dirname(confine(root, p));
   while (!existsSync(dir)) dir = dirname(dir);
-  return !escapes(relative(realpathSync(root), realpathSync(dir)));
+  return !escapes(relative(realRoot, realpathSync(dir)));
 }
 
 export const toPosix = (p: string): string => p.split(sep).join('/');

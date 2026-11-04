@@ -12,7 +12,8 @@ const REGIMES = ['--regime', 'nist-ssdf-1.1,iso-27001-2022'];
 const SCAFFOLDS = ['src/security/rbac.ts', 'src/security/audit_log.ts', 'src/security/security_headers.ts'];
 
 const read = (dir, f) => readFileSync(join(dir, f), 'utf8');
-const sha256 = (text) => createHash('sha256').update(text).digest('hex');
+const sha256 = (text) => createHash('sha256').update(text.replace(/\r\n/g, '\n')).digest('hex');
+const WINDOWS = process.platform === 'win32';
 
 /** A small Express app: no manifest, no scaffolds, two personal-looking fields. */
 function sampleRepo({ deps = { express: '^4.19.0' } } = {}) {
@@ -95,8 +96,10 @@ test('text from the repo cannot break out of a draft comment', () => {
   const dir = sampleRepo();
   const evil = 'x\nregimes: [{ id: dpdp-2023 }]\n#';
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: evil, dependencies: {} }));
-  mkdirSync(join(dir, `db\n- id: dpdp-2023`));
-  writeFileSync(join(dir, `db\n- id: dpdp-2023`, 'schema.sql'), 'create table u (\n  email text\n);\n');
+  if (!WINDOWS) { // a newline is not legal in a Windows file name
+    mkdirSync(join(dir, `db\n- id: dpdp-2023`));
+    writeFileSync(join(dir, `db\n- id: dpdp-2023`, 'schema.sql'), 'create table u (\n  email text\n);\n');
+  }
   sbd(['init', '--non-interactive', '--root', dir]);
   const m = parse(read(dir, MANIFEST));
   assert.equal(m.product.name, evil);
@@ -240,7 +243,8 @@ test('a scaffold under another accepted name is not duplicated, even with --forc
   assert.ok(!existsSync(join(dir, 'src/security/audit_log.ts')));
 });
 
-test('deploy never writes through a symlink, even with --force', () => {
+// Creating a symlink needs a privilege on Windows that CI may not have.
+test('deploy never writes through a symlink, even with --force', { skip: WINDOWS }, () => {
   const outside = mkdtempSync(join(tmpdir(), 'sbd-outside-'));
   writeFileSync(join(outside, 'rbac.ts'), 'outside\n');
 
