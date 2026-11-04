@@ -9,7 +9,7 @@
 // Beyond generic PII patterns, this redactor strips clinical free-text fields
 // (notes, diagnosis, symptom descriptions) and structured clinical values.
 
-import { redact as baseRedact } from './audit_log';
+import { isSensitiveField, maskSensitive, redact as baseRedact } from './audit_log';
 
 // Clinical field names commonly seen in EMR / EHR schemas.
 const CLINICAL_FIELD_NAMES = new Set([
@@ -49,7 +49,7 @@ export function phiRedact<T>(value: T): T {
 
   if (value instanceof Error) {
     const e = value as Error & { cause?: unknown; meta?: unknown };
-    const copy = new Error(typeof e.message === 'string' && isClinicalText(e.message) ? '[PHI_REDACTED]' : e.message);
+    const copy = new Error(phiRedact(e.message));
     copy.name = e.name;
     (copy as Error & { cause?: unknown }).cause = phiRedact(e.cause);
     return copy as unknown as T;
@@ -69,6 +69,8 @@ export function phiRedact<T>(value: T): T {
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       if (CLINICAL_FIELD_NAMES.has(k.toLowerCase())) {
         out[k] = '[PHI_REDACTED]';
+      } else if (isSensitiveField(k)) {
+        out[k] = maskSensitive(v);
       } else {
         out[k] = phiRedact(v);
       }

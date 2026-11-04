@@ -1,10 +1,9 @@
 // Regime catalogue queries and scaffold planning (read-only).
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { DEFAULT_STACK, scaffoldCandidates, scaffoldFiles } from './check.js';
+import { applicable, DEFAULT_STACK, scaffoldCandidates, scaffoldFiles } from './check.js';
 import { assetPath } from './assets.js';
 import { loadRegimes, loadRules } from './load.js';
-import { holds } from './manifest.js';
 import { checkStack, detectStack } from './stack.js';
 import type { Manifest, RegimeControl } from './types.js';
 
@@ -46,7 +45,7 @@ export function planScaffold(root: string, m: Manifest, stackArg?: string): Scaf
   const stack = resolveStack(root, m, stackArg) ?? DEFAULT_STACK;
   if (!Object.hasOwn(stacks, stack)) throw new Error(`unknown stack ${stack} (known: ${Object.keys(stacks).join(', ')})`);
   return rules
-    .filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
+    .filter((r) => r.kind === 'scaffold' && applicable(r, m))
     .map((r) => {
       const { template, target } = scaffoldFiles(r, stack)!;
       const presentAt = scaffoldCandidates(r).find((c) => existsSync(join(root, c)));

@@ -194,6 +194,13 @@ class Scaffolds(unittest.TestCase):
         self.assertEqual(out['n'], 1)
         self.assertEqual(phi.phi_redact({'diagnosis': 'flu', 'n': 'patient has fever'}), {'diagnosis': '[PHI_REDACTED]', 'n': '[PHI_REDACTED]'})
         self.assertEqual(str(phi.redact_err(ValueError('patient was seen'))), '[PHI_REDACTED]')
+        masked = phi.phi_redact({'phone': 'x', 'other': 'y', 'notes': 'z', 'rows': [{'PHONE': 1}]})
+        self.assertTrue(masked['phone'].startswith('pii:'))
+        self.assertEqual(masked['other'], 'y')
+        self.assertEqual(masked['notes'], '[PHI_REDACTED]')
+        self.assertEqual(masked['rows'], [{'PHONE': '[REDACTED]'}])
+        al.configure_redaction(['notes'])
+        self.assertEqual(phi.phi_redact({'notes': 'z'}), {'notes': '[PHI_REDACTED]'}, 'a clinical name stays fully hidden')
 
     def test_children_gate(self) -> None:
         class Verifier:

@@ -62,6 +62,10 @@ def configure_redaction(fields: Iterable[str]) -> None:
     _sensitive_field_names = {f.lower() for f in fields}
 
 
+def is_sensitive_field(name: str) -> bool:
+    return name.lower() in _sensitive_field_names
+
+
 REDACTED = '[REDACTED]'
 
 COMMON_PII_PATTERNS: list[re.Pattern[str]] = [
@@ -74,6 +78,11 @@ COMMON_PII_PATTERNS: list[re.Pattern[str]] = [
 
 def _pseudonymize(value: str) -> str:
     return 'pii:' + hashlib.sha256(value.encode('utf-8')).hexdigest()[:12]
+
+
+def mask_sensitive(value: Any) -> str:
+    """How a field named in configure_redaction() is masked."""
+    return _pseudonymize(value) if isinstance(value, str) else REDACTED
 
 
 def to_plain(value: Any) -> Any:
@@ -100,8 +109,8 @@ def redact(value: Any) -> Any:
     if isinstance(value, Mapping):
         out: dict[str, Any] = {}
         for k, v in value.items():
-            if str(k).lower() in _sensitive_field_names:
-                out[str(k)] = _pseudonymize(v) if isinstance(v, str) else REDACTED
+            if is_sensitive_field(str(k)):
+                out[str(k)] = mask_sensitive(v)
             else:
                 out[str(k)] = redact(v)
         return out

@@ -1,22 +1,39 @@
 #!/usr/bin/env node
-// Type-checks the scaffolds the way /sbd-deploy lays them out, both with every scaffold and
-// with the smallest AI set (a non-healthcare project gets no phi_redaction), so a scaffold
-// cannot ship with an error or depend on a file that may not be deployed. Python scaffolds
-// must also compile and import.
+// Type-checks the scaffolds the way /sbd-deploy lays them out, with every scaffold and with
+// the sets `sbd plan` gives a DPDP-only project and an AI-only one (a non-healthcare project
+// gets no phi_redaction), so a scaffold cannot ship with an error or depend on a file that may
+// not be deployed. Python scaffolds must also compile and import.
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { scaffoldPython } from './python-env.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const { rules, stacks } = parse(readFileSync(join(root, 'rules/scaffolds.yaml'), 'utf8'));
 const tsc = join(root, 'node_modules/typescript/bin/tsc');
-const SETS = { all: () => true, 'ai without phi_redaction': (r) => ['audit_log', 'decision_log', 'human_oversight'].includes(r.name) };
 
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: 'pipe', encoding: 'utf8' });
+
+// Asks the planner, not a list here, so a rule that drops a dependency fails this check.
+function planned(manifest) {
+  const dir = mkdtempSync(join(tmpdir(), 'sbd-plan-'));
+  try {
+    writeFileSync(join(dir, 'privacy-security-manifest.yaml'), stringify({ schemaVersion: '0.2', product: { name: 'sample' }, ...manifest }));
+    const ids = new Set(JSON.parse(run(process.execPath, [join(root, 'dist/sbd.mjs'), 'plan', '--root', dir], dir)).map((i) => i.ruleId));
+    return (r) => ids.has(r.id);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const SETS = {
+  all: () => true,
+  'ai without phi_redaction': planned({ regimes: [{ id: 'nist-ssdf-1.1' }], dataCategories: [], aiSystems: [{ name: 'triage', humanOversight: 'clinician-review' }] }),
+  'dpdp only': planned({ regimes: [{ id: 'dpdp-2023' }], dataCategories: [{ name: 'people', sensitivity: 'sensitive-personal', childrenDataPossible: true }] }),
+};
 
 function checkTypescript(dir) {
   writeFileSync(join(dir, 'tsconfig.json'), JSON.stringify({

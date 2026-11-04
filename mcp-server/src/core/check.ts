@@ -11,7 +11,7 @@ import { confine, toPosix } from './paths.js';
 import { isMcpConfig, scanMcpConfig } from './mcp-config.js';
 import { ignored, regex, scanText } from './scan.js';
 import { detectStack } from './stack.js';
-import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Finding, type Manifest, type Rule, type Severity } from './types.js';
+import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Condition, type Finding, type Manifest, type Rule, type Severity } from './types.js';
 import { VERSION } from './version.js';
 
 export interface CheckOptions {
@@ -57,7 +57,8 @@ function onAddedLine(f: Finding, added: AddedLines): boolean {
 }
 
 export function applicable(rule: Rule, m: Manifest): boolean {
-  return (rule.when ?? []).every((c) => holds(m, c));
+  const all = (conditions: Condition[]) => conditions.every((c) => holds(m, c));
+  return all(rule.when ?? []) && (rule.whenAny?.some(all) ?? true);
 }
 
 function effectiveSeverity(rule: Rule, m: Manifest): Severity {
