@@ -38,6 +38,16 @@ export interface OversightAdapter {
 let adapter: OversightAdapter | null = null;
 export function setOversightAdapter(a: OversightAdapter): void { adapter = a; }
 
+function applyModifications<T>(output: T, modifications: Record<string, unknown>): T {
+  const proto = output === null || typeof output !== 'object' ? undefined : Object.getPrototypeOf(output);
+  if (proto === Object.prototype || proto === null) {
+    return { ...output, ...modifications } as T;
+  }
+  // The reviewer changed this output. Returning it unchanged would act on the unreviewed value.
+  const kind = Object.prototype.toString.call(output).slice(8, -1);
+  throw new TypeError(`secure-by-design: cannot apply review modifications to ${kind}.`);
+}
+
 /**
  * Gate function — call after `decisionLog(...)` returns AI output and before
  * persisting / displaying / acting on it.
@@ -99,10 +109,7 @@ export async function requirePhysicianReview<T>(
   }
 
   if (decision.decision === 'modified' && decision.modifications) {
-    return {
-      output: { ...(aiOutput as object), ...decision.modifications } as T,
-      decision,
-    };
+    return { output: applyModifications(aiOutput, decision.modifications), decision };
   }
 
   return { output: aiOutput, decision };

@@ -4,14 +4,14 @@ Thanks for helping. Bug reports, new rules, regime corrections and scaffolds for
 
 ## Set up
 
-You need Node.js 20 or later.
+You need Node.js 20 or later and Python 3.10 or later. Set `SBD_PYTHON` to choose the interpreter.
 
 ```bash
 npm ci
 npm test
 ```
 
-`npm test` type-checks the engine, confirms `dist/` matches the source, type-checks the scaffolds, and runs the test suite against fixture projects.
+`npm test` type-checks the engine, confirms `dist/` matches the source, type-checks the TypeScript and Python scaffolds, and runs the test suite against fixture projects. The first run builds a private virtualenv in `build/` from a hash-pinned lockfile, so it needs network access.
 
 ## Where things live
 

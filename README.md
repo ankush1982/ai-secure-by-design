@@ -74,7 +74,7 @@ This report lists control gaps. It is not a compliance determination.
 |---|---|
 | TypeScript + Express | v0.1 ✅ (templates in `templates/typescript-express/`) |
 | TypeScript + Next.js | Planned (v0.2+). No templates yet. |
-| Python + FastAPI | Planned (v0.2+). No templates yet. `sbd check` already reads Python code and models. |
+| Python + FastAPI | v0.2 ✅ (templates in `templates/python-fastapi/`; needs Python 3.10+ and `fastapi`). `sbd check` also reads Python code and models. |
 | Go, Rust, Java, .NET | Later |
 
 ## How it works (v0.2)
@@ -230,7 +230,7 @@ The instruction files are generated from `instructions/agent-instructions.md` by
 - MCP server with read-only tools any MCP client can call
 - GitHub Action with SARIF upload
 
-**Product-code scaffolds** (dropped into your repo):
+**Product-code scaffolds** (dropped into your repo; `.ts` shown, `.py` on `python-fastapi`):
 - `src/privacy/consent.ts` — DPDP §6 consent recording + verification
 - `src/privacy/dsr_handler.ts` — DPDP §11–14 data principal rights endpoints
 - `src/privacy/retention_runner.ts` — DPDP §8(7) retention enforcement
@@ -240,7 +240,7 @@ The instruction files are generated from `instructions/agent-instructions.md` by
 - `src/security/audit_log.ts` — ISO 27001 A.8.15 logging scaffold
 - `src/security/security_headers.ts` — OWASP-aligned defaults
 - `src/security/phi_redaction.ts` — healthcare PHI redaction helper
-- `src/ai/decision_log.ts` — AI decision logging (ISO 42001-ready)
+- `src/ai/decision_log.ts` — AI decision logging
 - `src/ai/human_oversight.ts` — human-in-the-loop gate
 - `privacy-security-manifest.yaml` — single source of truth for your data + regimes
 
@@ -263,7 +263,7 @@ Apache-2.0, see [LICENSE](./LICENSE), except `regimes/ai-security-wiki.yaml` and
 
 ## Status
 
-v0.2 in development — pre-release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`). Pending real-world validation. See the [roadmap](./ROADMAP.md).
+v0.2 in development — pre-release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation. See the [roadmap](./ROADMAP.md).
 
 ## Contributing and security
 

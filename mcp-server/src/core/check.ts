@@ -10,7 +10,8 @@ import { classifiedFields, DEFAULT_MANIFEST, holds, loadManifest, normaliseField
 import { confine, toPosix } from './paths.js';
 import { isMcpConfig, scanMcpConfig } from './mcp-config.js';
 import { ignored, regex, scanText } from './scan.js';
-import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Finding, type Manifest, type Rule, type Severity } from './types.js';
+import { detectStack } from './stack.js';
+import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Condition, type Finding, type Manifest, type Rule, type Severity } from './types.js';
 import { VERSION } from './version.js';
 
 export interface CheckOptions {
@@ -23,6 +24,7 @@ export interface CheckOptions {
 }
 
 const SCAFFOLD_EXTS = ['.ts', '.tsx', '.js', '.mjs', '.py'];
+export const DEFAULT_STACK = 'typescript-express';
 
 export function runCheck(opts: CheckOptions): CheckResult {
   const root = opts.root;
@@ -55,7 +57,8 @@ function onAddedLine(f: Finding, added: AddedLines): boolean {
 }
 
 export function applicable(rule: Rule, m: Manifest): boolean {
-  return (rule.when ?? []).every((c) => holds(m, c));
+  const all = (conditions: Condition[]) => conditions.every((c) => holds(m, c));
+  return all(rule.when ?? []) && (rule.whenAny?.some(all) ?? true);
 }
 
 function effectiveSeverity(rule: Rule, m: Manifest): Severity {
@@ -168,17 +171,28 @@ export function scaffoldCandidates(rule: Rule): string[] {
   return [...names].flatMap((n) => SCAFFOLD_EXTS.map((e) => `${rule.dir}/${n}${e}`));
 }
 
+/** Where a scaffold's template and deployed file live for a stack; undefined for an unknown stack. */
+export function scaffoldFiles(rule: Rule, stack: string): { template: string; target: string } | undefined {
+  const { stacks } = loadRules();
+  const ext = Object.hasOwn(stacks, stack) ? stacks[stack] : undefined;
+  return ext ? { template: `templates/${stack}/${rule.template}${ext}`, target: `${rule.dir}/${rule.name}${ext}` } : undefined;
+}
+
 function scaffoldFindings(root: string, m: Manifest): Finding[] {
   const out: Finding[] = [];
+  const stack = m.product.stack ?? detectStack(root).stack ?? DEFAULT_STACK;
   for (const rule of loadRules().rules.filter((r) => r.kind === 'scaffold' && applicable(r, m))) {
     const candidates = scaffoldCandidates(rule);
     if (candidates.some((c) => existsSync(join(root, c)))) continue;
+    const files = scaffoldFiles(rule, stack);
     out.push({
       ruleId: rule.id,
       title: `Missing scaffold: ${rule.title}`,
       severity: effectiveSeverity(rule, m),
       message: `Missing ${rule.dir}/${rule.name}.<ext> (${rule.title}).`,
-      remediation: `Copy templates/<stack>/${rule.template} to ${rule.dir}/${rule.name}${rule.template!.slice(rule.template!.lastIndexOf('.'))}, or run \`sbd deploy\`.`,
+      remediation: files
+        ? `Copy ${files.template} to ${files.target}, or run \`sbd deploy\`.`
+        : `No templates for stack ${stack}; add ${rule.dir}/${rule.name}.<ext> yourself.`,
       regimes: rule.regimes ?? [],
     });
   }

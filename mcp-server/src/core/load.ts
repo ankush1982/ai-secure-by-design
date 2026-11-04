@@ -46,6 +46,8 @@ export function loadRegimes(): Regime[] {
 export interface RuleSet {
   rules: Rule[];
   personalFields: PersonalFieldsSpec;
+  /** Scaffold stack id to template file extension. */
+  stacks: Record<string, string>;
 }
 
 let rulesCache: RuleSet | undefined;
@@ -54,8 +56,10 @@ export function loadRules(): RuleSet {
   const dir = assetPath('rules');
   const rules: Rule[] = [];
   let personalFields: PersonalFieldsSpec | undefined;
+  let stacks: Record<string, string> = {};
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.yaml')).sort()) {
-    const data = loadValidated<{ rules?: Rule[] } & Partial<PersonalFieldsSpec>>(`${dir}/${f}`, 'rules');
+    const data = loadValidated<{ rules?: Rule[]; stacks?: Record<string, string> } & Partial<PersonalFieldsSpec>>(`${dir}/${f}`, 'rules');
+    if (data.stacks) stacks = data.stacks;
     if (data.rules) rules.push(...data.rules);
     else personalFields = data as PersonalFieldsSpec;
   }
@@ -65,6 +69,6 @@ export function loadRules(): RuleSet {
     if (ids.has(r.id)) throw new Error(`duplicate rule id ${r.id}`);
     ids.add(r.id);
   }
-  rulesCache = { rules, personalFields };
+  rulesCache = { rules, personalFields, stacks };
   return rulesCache;
 }

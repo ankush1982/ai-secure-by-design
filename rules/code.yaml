@@ -18,7 +18,7 @@ rules:
     files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py"]
     pattern: '(\b(app|router|server|api)\.(post|put|patch|delete)\s*\(|@(app|router|api)\.(post|put|patch|delete)\s*\(|export\s+(async\s+)?function\s+(POST|PUT|PATCH|DELETE)\b)'
     unlessNearby:
-      pattern: '\b(auditLog|audit_log)\s*\('
+      pattern: '\b(auditLog|audit_log)(\.\w+)?\s*\('
       before: 0
       after: 40
     regimes:
@@ -26,7 +26,7 @@ rules:
       - { regime: iso-27001-2022, control: logging }
       - { regime: dpdp-2023, control: data-fiduciary-duties }
     message: Handler mutates data without an auditLog() call within 40 lines.
-    remediation: "Call auditLog({ actor, action, target }) from src/security/audit_log in the handler."
+    remediation: "Call auditLog.event(action, { actor, target }) (Python: audit_log.event(action, actor=..., target=...)) from src/security/audit_log in the handler."
 
   - id: SBD-CODE-002
     title: Personal data written to logs

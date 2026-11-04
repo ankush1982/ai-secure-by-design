@@ -58,9 +58,8 @@ export async function requirePermission(actorId: string, permission: Permission)
 }
 
 /**
- * Express middleware factory.
- *
- *   router.post('/patients', requires('patient:create'), createPatientHandler);
+ * Express middleware factory. Your auth layer sets req.user. Add it to a route ahead of
+ * the handler, as requires('patient:create').
  */
 export function requires(permission: Permission) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
