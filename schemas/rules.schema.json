@@ -8,7 +8,7 @@
   ],
   "definitions": {
     "severity": { "type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"] },
-    "ruleId": { "type": "string", "pattern": "^SBD-[A-Z]+-[0-9]{3}$" },
+    "ruleId": { "type": "string", "pattern": "^(SBD-[A-Z]+|AIW)-[0-9]{3}$" },
     "condition": {
       "type": "string",
       "pattern": "^(regime:[a-z0-9.-]+|personalData|sensitiveData|childrenData|aiSystems|highRiskAi|humanOversight|healthcare)$"
@@ -48,7 +48,8 @@
       "properties": {
         "id": { "$ref": "#/definitions/ruleId" },
         "title": { "type": "string" },
-        "kind": { "type": "string", "enum": ["secret", "code", "scaffold"] },
+        "kind": { "type": "string", "enum": ["secret", "code", "scaffold",
+            "mcp-config"] },
         "severity": { "$ref": "#/definitions/severity" },
         "severityWhen": {
           "type": "array",
@@ -63,7 +64,8 @@
           }
         },
         "when": { "type": "array", "items": { "$ref": "#/definitions/condition" } },
-        "files": { "type": "array", "items": { "type": "string", "pattern": "^\\.[A-Za-z0-9]+$" } },
+        "files": { "type": "array", "items": { "type": "string", "pattern": "^\\.?[A-Za-z0-9]+$",
+              "description": "A file extension such as .py, or an exact name such as Dockerfile." } },
         "pattern": { "type": "string" },
         "flags": { "type": "string", "pattern": "^[imsu]*$" },
         "mustAlsoMatch": { "$ref": "#/definitions/regex" },

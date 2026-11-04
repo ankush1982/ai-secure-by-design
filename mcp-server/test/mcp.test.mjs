@@ -7,7 +7,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SERVER, json, tempFixture } from './helpers.mjs';
 
-const TOOLS = ['sbd_check', 'sbd_explain_control', 'sbd_list_controls', 'sbd_plan_scaffold', 'sbd_review_diff', 'sbd_scan_text', 'sbd_validate_manifest'];
+const TOOLS = ['sbd_check', 'sbd_evidence_plan', 'sbd_explain_control', 'sbd_list_controls', 'sbd_plan_scaffold', 'sbd_review_diff', 'sbd_scan_text', 'sbd_validate_manifest'];
 
 async function exercise(client, dir) {
   const { tools } = await client.listTools();

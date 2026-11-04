@@ -1,6 +1,6 @@
 // SARIF 2.1.0 output, so findings show up in GitHub code scanning and other tools.
-import { loadRules } from './load.js';
-import type { CheckResult, Severity } from './types.js';
+import { loadRegimes, loadRules } from './load.js';
+import { WIKI_REGIME, type CheckResult, type Finding, type Severity } from './types.js';
 
 const LEVEL: Record<Severity, 'error' | 'warning' | 'note'> = {
   CRITICAL: 'error',
@@ -18,6 +18,13 @@ const SECURITY_SEVERITY: Record<Severity, string> = {
   LOW: '3.0',
   INFO: '0.0',
 };
+
+/** The wiki page for a finding's first wiki control, when the user picked that regime. */
+function wikiHelp(f: Finding): { helpUri: string } | undefined {
+  const control = f.regimes.find((g) => g.regime === WIKI_REGIME)?.control;
+  const url = control && loadRegimes().find((x) => x.id === WIKI_REGIME)?.controls.find((c) => c.id === control)?.url;
+  return url ? { helpUri: url } : undefined;
+}
 
 export function toSarif(r: CheckResult): object {
   const ruleMeta = new Map(loadRules().rules.map((x) => [x.id, x]));
@@ -41,6 +48,7 @@ export function toSarif(r: CheckResult): object {
                 name: (meta?.title ?? sample.title).replace(/[^A-Za-z0-9]+/g, ''),
                 shortDescription: { text: meta?.title ?? sample.title },
                 help: { text: meta?.remediation ?? sample.remediation ?? sample.message },
+                ...wikiHelp(sample),
                 defaultConfiguration: { level: LEVEL[meta?.severity ?? sample.severity] },
                 properties: {
                   'security-severity': SECURITY_SEVERITY[meta?.severity ?? sample.severity],

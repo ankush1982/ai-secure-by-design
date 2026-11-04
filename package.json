@@ -2,7 +2,7 @@
   "name": "ai-secure-by-design",
   "version": "0.2.0-dev",
   "description": "Deterministic secure-by-design / privacy-by-design checks with CLI, SARIF output, MCP server and git/CI adapters.",
-  "license": "Apache-2.0",
+  "license": "(Apache-2.0 AND CC-BY-SA-4.0)",
   "type": "module",
   "repository": {
     "type": "git",
@@ -19,16 +19,20 @@
     "schemas/",
     "templates/",
     "hooks/",
-    "instructions/"
+    "instructions/",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.json && node scripts/bundle.mjs",
-    "test": "tsc --noEmit -p tsconfig.json && node scripts/bundle.mjs --check && node --test mcp-server/test/engine.test.mjs mcp-server/test/mcp.test.mjs",
+    "test": "tsc --noEmit -p tsconfig.json && node scripts/bundle.mjs --check && node scripts/check-scaffolds.mjs && node --test mcp-server/test/engine.test.mjs mcp-server/test/mcp.test.mjs mcp-server/test/wiki.test.mjs",
     "gen:instructions": "node scripts/gen-instructions.mjs",
-    "check:instructions": "node scripts/gen-instructions.mjs --check"
+    "check:instructions": "node scripts/gen-instructions.mjs --check",
+    "sync:wiki": "node scripts/sync-wiki.mjs",
+    "check:scaffolds": "node scripts/check-scaffolds.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
+    "@types/express": "4.17.21",
     "@types/node": "20.19.43",
     "ajv": "8.20.0",
     "esbuild": "0.25.12",

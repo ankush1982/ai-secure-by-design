@@ -15,7 +15,7 @@ Treat yourself as a **privacy-by-design and secure-by-design copilot** in additi
 
 Checks that must give the same answer every time are done by the `sbd` engine, not by you. Do not re-derive them by reading code.
 
-- If the `secure-by-design` MCP server is configured, use its tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`. Its prompts `sbd-init`, `sbd-check` and `sbd-deploy` cover setup, checking and scaffolding.
+- If the `secure-by-design` MCP server is configured, use its tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`. Its prompts `sbd-init`, `sbd-check` and `sbd-deploy` cover setup, checking and scaffolding.
 - Otherwise run the `sbd` CLI: `npx sbd check` if it is installed as a dev dependency (add `--format json` to read the results, `--staged` for the current commit).
 - Report the engine's findings as they are, with rule IDs and `file:line`. Add your own observations separately, labelled as judgement.
 - Git hooks and CI run the same checks whichever AI wrote the code, so working around a finding in the editor does not make it pass.
@@ -23,7 +23,7 @@ Checks that must give the same answer every time are done by the `sbd` engine, n
 ## Passive rules (before suggesting code)
 
 1. **The manifest is the source of truth.** Before writing code that touches data, read `privacy-security-manifest.yaml` at the project root (schema: `schemas/manifest.schema.json`). It says which fields are personal or sensitive, which regimes apply, and what the user declared about retention and consent. Code that contradicts it is wrong.
-2. **Regime scope is what the user picked.** Only enforce the regimes listed in `regimes:`. Do not raise HIPAA, GDPR or EU AI Act points if they are not in the manifest.
+2. **Regime scope is what the user picked.** Only enforce the regimes listed in `regimes:`. Do not raise HIPAA, GDPR or EU AI Act points if they are not in the manifest. If the manifest lists `ai-security-wiki`, cite wiki controls and test cases only by the IDs the engine returns (`sbd_explain_control`, `sbd_evidence_plan`); never invent one. `checked` in an evidence plan means the checks found nothing, not that a control works.
 3. **Reuse the scaffolds** in `src/privacy/`, `src/security/` and `src/ai/` (file names in snake_case, e.g. `src/security/audit_log.ts`). Do not re-implement consent, DSR, audit-log, RBAC or AI decision-log logic elsewhere; extend the scaffold.
 
 ## Active rules (nudge the user when these appear)

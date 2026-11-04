@@ -80,7 +80,7 @@ export function dsrRouter(): Router {
         return;
       }
       await requireAdapter().applyCorrections(dpId, changes);
-      await auditLog.event('dsr.correct', { actor: dpId, target: dpId, fields: Object.keys(changes) });
+      await auditLog.event('dsr.correct', { actor: dpId, target: dpId, attrs: { fields: Object.keys(changes) } });
       res.json({ ok: true });
     } catch (e) { next(e); }
   });
@@ -93,8 +93,7 @@ export function dsrRouter(): Router {
       const result = await requireAdapter().eraseOrAnonymize(dpId);
       await auditLog.event('dsr.erase', {
         actor: dpId, target: dpId,
-        erasedCount: result.erased.length,
-        retainedCount: result.retained.length,
+        attrs: { erasedCount: result.erased.length, retainedCount: result.retained.length },
       });
       // Communicate retention reasons honestly — DPDP allows retention only for
       // legal compliance or specified purposes. The user expects to know.
@@ -113,7 +112,7 @@ export function dsrRouter(): Router {
         return;
       }
       const { ticketId } = await requireAdapter().recordGrievance(dpId, message);
-      await auditLog.event('dsr.grievance', { actor: dpId, target: dpId, ticketId });
+      await auditLog.event('dsr.grievance', { actor: dpId, target: dpId, attrs: { ticketId } });
       // TODO(user): notify the grievance officer via your incident channel.
       res.status(201).json({ ticketId });
     } catch (e) { next(e); }

@@ -8,8 +8,9 @@ import { listFiles, readText } from './files.js';
 import { loadRules } from './load.js';
 import { classifiedFields, DEFAULT_MANIFEST, holds, loadManifest, normaliseField, personalFields } from './manifest.js';
 import { confine, toPosix } from './paths.js';
-import { regex, scanText } from './scan.js';
-import { SEVERITY_ORDER, type CheckResult, type Finding, type Manifest, type Rule, type Severity } from './types.js';
+import { isMcpConfig, scanMcpConfig } from './mcp-config.js';
+import { ignored, regex, scanText } from './scan.js';
+import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Finding, type Manifest, type Rule, type Severity } from './types.js';
 import { VERSION } from './version.js';
 
 export interface CheckOptions {
@@ -53,7 +54,7 @@ function onAddedLine(f: Finding, added: AddedLines): boolean {
   return (added.get(f.file) ?? []).some((l) => l.line === f.line);
 }
 
-function applicable(rule: Rule, m: Manifest): boolean {
+export function applicable(rule: Rule, m: Manifest): boolean {
   return (rule.when ?? []).every((c) => holds(m, c));
 }
 
@@ -70,16 +71,18 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function scanFiles(root: string, files: string[], m: Manifest): Finding[] {
   const { rules } = loadRules();
   const codeRules = rules.filter((r) => r.kind === 'code' && applicable(r, m));
+  const mcpRules = rules.filter((r) => r.kind === 'mcp-config' && applicable(r, m));
   const fields = personalFields(m);
   const out: Finding[] = [];
   for (const file of files) {
     const text = readText(join(root, file));
     if (text === undefined) continue;
     out.push(...scanText(text, file));
-    const ext = file.slice(file.lastIndexOf('.'));
+    if (mcpRules.length && isMcpConfig(file, text)) out.push(...scanMcpConfig(text, file, mcpRules));
+    const name = file.slice(file.lastIndexOf('/') + 1);
     const lines = text.split(/\r?\n/);
     for (const rule of codeRules) {
-      if (rule.files && !rule.files.includes(ext)) continue;
+      if (rule.files && !rule.files.some((s) => name.endsWith(s))) continue;
       let also: RegExp | undefined;
       if (rule.mustAlsoMatch) {
         if (rule.mustAlsoMatch.pattern.includes('{{personalFields}}') && fields.length === 0) continue;
@@ -90,6 +93,7 @@ function scanFiles(root: string, files: string[], m: Manifest): Finding[] {
       lines.forEach((text, i) => {
         if (!re.test(text)) return;
         if (also && !also.test(text)) return;
+        if (ignored(text, rule.id)) return;
         if (unless) {
           // The window stops at the next line the rule itself matches, so a log call in
           // the following handler cannot excuse this one.
@@ -184,6 +188,10 @@ const SORT = (a: Finding, b: Finding) =>
 
 export function result(root: string, manifestPath: string, m: Manifest | undefined, findings: Finding[]): CheckResult {
   findings.sort(SORT);
+  // Wiki tags follow the same rule as every regime: shown only if the user picked it.
+  if (!m?.regimes.some((r) => r.id === WIKI_REGIME)) {
+    for (const f of findings) f.regimes = f.regimes.filter((g) => g.regime !== WIKI_REGIME);
+  }
   return {
     tool: { name: 'sbd', version: VERSION },
     root,

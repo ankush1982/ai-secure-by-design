@@ -35,6 +35,11 @@ regimes:
     scope: Patient and physician personal data under DPDP Act 2023.
     significantDataFiduciary: null   # null = undecided; true if you self-assess § 10 applies; consult counsel.
 
+  # Optional: the community AI Security Wiki control library and its AI-specific checks.
+  # A practitioner reference, not a law. Turns on the AIW-* rules and tags findings with AI-CTRL IDs.
+  # - id: ai-security-wiki
+  #   scope: AI features, agents and MCP servers in this product.
+
 dataCategories:
   - name: patient-clinical
     sensitivity: sensitive-personal

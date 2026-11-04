@@ -23,6 +23,10 @@
 - [x] Instruction packs generated from one source: CLAUDE.md, AGENTS.md, GEMINI.md, Copilot, Cursor
 - [x] Fixture-based tests for the engine, hooks and MCP server
 - [x] Fixes: private-key pattern never matched in the pre-write hook; hook read input from a non-existent env var and hooks.json lacked the `hooks` wrapper; scaffold names disagreed between generator, templates and check; dpdp-2023.yaml did not parse; DPDP "sensitive personal data" and "contract ground" statements; DPDP Rules 2025 status
+- [x] Fixes found on macOS: CLI output cut off at 8 KB on pipes, `grep -P` fallback hooks scanned nothing; CI now runs on Linux, macOS and Windows
+- [x] Plugin passes `claude plugin validate`; project rules ship as a skill
+- [x] Scaffolds type-check in `npm test`, and `decision_log` no longer needs `phi_redaction`
+- [x] AI Security Wiki integration: opt-in `ai-security-wiki` regime, `AIW-*` rules, MCP configuration checks, `sbd evidence`, `/sbd-evidence`, `sbd: ignore`
 - [ ] Cross-platform evaluation harness (same prompts through each adapter, diff the results)
 - [ ] Signed releases, SBOM, permissions statement
 - [ ] `init --non-interactive` and `deploy` in the CLI (today: MCP prompts + `plan`)
@@ -49,7 +53,7 @@
 
 ## Not on the roadmap (deliberately)
 
-- Audit-evidence collection bundle (Vanta/Drata is the right tool there).
+- Audit-evidence collection (Vanta/Drata is the right tool there). `sbd evidence` plans what to collect; it does not collect or store it.
 - SaaS hosting of a "compliance scoring" service.
 - Government / regulator-facing certification claims.
 - Sector-specific scaffolds for finance, ed-tech, gov-tech (would dilute the focus).

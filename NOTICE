@@ -1,0 +1,16 @@
+Secure & Private by Design (ai-secure-by-design)
+Copyright Ankush Jain and contributors.
+
+The code in this repository is licensed under Apache-2.0 (see LICENSE), except for
+the two generated data files below.
+
+  regimes/ai-security-wiki.yaml
+  rules/ai-wiki.yaml
+
+These are adapted from the AI Security Wiki by Nachiket Sathaye and Ankush Jain
+(https://github.com/nachi065/AI-Security-Wiki) and are licensed under the Creative
+Commons Attribution-ShareAlike 4.0 International licence (CC BY-SA 4.0,
+https://creativecommons.org/licenses/by-sa/4.0/). They were converted to YAML by
+scripts/sync-wiki.mjs; the wiki commit is named at the top of each file. If you adapt
+these two files, share your version under the same licence. The Apache-2.0 code reads
+them as data, and that does not change the licence of the code.

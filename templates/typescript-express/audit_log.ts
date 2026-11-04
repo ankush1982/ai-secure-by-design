@@ -56,7 +56,7 @@ function pseudonymize(value: string): string {
 export function redact<T>(value: T): T {
   if (value == null) return value;
   if (typeof value === 'string') {
-    let s = value;
+    let s: string = value;
     for (const re of COMMON_PII_PATTERNS) {
       s = s.replace(re, (m) => pseudonymize(m));
     }

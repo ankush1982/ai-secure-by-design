@@ -19,6 +19,12 @@ export function regex(pattern: string, flags = ''): RegExp {
   return re;
 }
 
+/** True if the line carries `sbd: ignore` (all rules) or `sbd: ignore SBD-CODE-001` (one rule). */
+export function ignored(line: string, ruleId: string): boolean {
+  const m = /\b(?:sbd|aiwiki):\s*ignore\b([A-Z0-9\-, ]*)/.exec(line);
+  return !!m && (!m[1]!.trim() || m[1]!.includes(ruleId));
+}
+
 export function secretRules(): Rule[] {
   return loadRules().rules.filter((r) => r.kind === 'secret');
 }

@@ -16,7 +16,7 @@ STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 PATTERNS=(
   'AKIA[0-9A-Z]{16}'
   '-----BEGIN (RSA |EC |OPENSSH |DSA |PGP |ENCRYPTED )?PRIVATE KEY'
-  '(?i)(api[_-]?key|secret|password|token)\s*[:=]\s*["'"'"'][A-Za-z0-9+/=_-]{24,}["'"'"']'
+  '([Aa][Pp][Ii][_-]?[Kk][Ee][Yy]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Tt][Oo][Kk][Ee][Nn])[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9+/=_-]{24,}["'"'"']'
   'sk-[A-Za-z0-9]{32,}'
   'xox[baprs]-[A-Za-z0-9-]{10,}'
   'ghp_[A-Za-z0-9]{36}'
@@ -32,7 +32,7 @@ for FILE in $STAGED; do
     *.snap|*/fixtures/*|*/__snapshots__/*) continue ;;
   esac
   for p in "${PATTERNS[@]}"; do
-    if git diff --cached "$FILE" | grep -qP -e "^\+.*$p" 2>/dev/null; then
+    if git diff --cached "$FILE" | grep -qE -e "^\+.*$p"; then
       echo "[secure-by-design] secret pattern in $FILE: $p" >&2
       FAILED=1
     fi

@@ -3,10 +3,14 @@
 // git hooks, CI action, agent hooks) calls the same functions, so results match.
 //
 // Exit codes: 0 = no findings at or above --fail-on, 1 = findings, 2 = usage or runtime error.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, writeSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import {
+  evidenceCsv,
+  evidenceMarkdown,
+  evidencePlan,
+  evidenceText,
   explainControl,
   listControls,
   loadManifest,
@@ -36,6 +40,8 @@ Usage:
   sbd controls  [--regime ID]
   sbd explain   REGIME CONTROL
   sbd plan      [--root DIR] [--manifest FILE] [--stack STACK]
+  sbd evidence  [--root DIR] [--manifest FILE] [--tier baseline|advanced]
+                [--format text|json|markdown|csv] [--output FILE]
   sbd provenance COMMIT_MSG_FILE
   sbd hook claude-pretooluse     (reads Claude Code hook JSON on stdin)
 
@@ -55,6 +61,7 @@ const { values, positionals } = parseArgs({
     'fail-on': { type: 'string', default: 'high' },
     regime: { type: 'string', default: 'all' },
     stack: { type: 'string', default: 'typescript-express' },
+    tier: { type: 'string' },
     help: { type: 'boolean', short: 'h', default: false },
     version: { type: 'boolean', short: 'v', default: false },
   },
@@ -65,9 +72,29 @@ function fail(msg: string): never {
   process.exit(2);
 }
 
+/**
+ * Writes all of `text` to stdout before returning. process.stdout.write is asynchronous
+ * for pipes on macOS and Windows, so with process.exit() right after it the reader got
+ * only the first 8 KB of a large JSON or SARIF report.
+ */
+function writeStdout(text: string): void {
+  const buf = Buffer.from(text);
+  let off = 0;
+  while (off < buf.length) {
+    try {
+      off += writeSync(1, buf, off);
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code;
+      if (code === 'EPIPE') return; // the reader went away, e.g. `sbd check | head`
+      if (code !== 'EAGAIN') throw e;
+    }
+  }
+}
+
 function emit(text: string): void {
-  if (values.output) writeFileSync(values.output, text.endsWith('\n') ? text : `${text}\n`);
-  else process.stdout.write(text.endsWith('\n') ? text : `${text}\n`);
+  const out = text.endsWith('\n') ? text : `${text}\n`;
+  if (values.output) writeFileSync(values.output, out);
+  else writeStdout(out);
 }
 
 function threshold(): Severity | undefined {
@@ -206,6 +233,19 @@ function main(): void {
         process.exit(1);
       }
       emit(JSON.stringify(planScaffold(root, manifest, values.stack), null, 2));
+      return;
+    }
+    case 'evidence': {
+      const p = evidencePlan({ root, manifestPath: values.manifest, tier: values.tier });
+      const formats: Record<string, () => string> = {
+        text: () => evidenceText(p),
+        json: () => JSON.stringify(p, null, 2),
+        markdown: () => evidenceMarkdown(p),
+        csv: () => evidenceCsv(p),
+      };
+      const format = formats[values.format ?? 'text'];
+      if (!format) fail(`unknown --format ${values.format}`);
+      emit(format());
       return;
     }
     case 'provenance':
