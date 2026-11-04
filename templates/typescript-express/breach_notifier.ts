@@ -5,9 +5,9 @@
 //
 // Scaffold for personal-data-breach reporting. DPDP §8(6) requires the data
 // fiduciary to notify the Data Protection Board and affected data principals
-// in the event of a personal data breach. The exact form, timeline, and
-// content will be specified by rules under the Act — this scaffold is a
-// shape, not the final transport.
+// in the event of a personal data breach. The DPDP Rules, 2025 set the form,
+// timeline and content and commence in phases; this scaffold does not map them.
+// It is a shape, not the final transport.
 
 import { auditLog } from '../security/audit_log';
 
@@ -28,7 +28,7 @@ export interface BreachReport {
 export interface BreachNotifier {
   /**
    * Send the notification to the Data Protection Board.
-   * Replace with your actual transport once the form is notified by rules under the Act.
+   * Replace with your actual transport, following the form in the DPDP Rules, 2025.
    */
   notifyBoard(report: BreachReport): Promise<{ ticketId: string }>;
 

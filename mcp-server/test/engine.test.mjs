@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { CLI, FAKE, FIXTURE, REPO, json, sbd, tempFixture } from './helpers.mjs';
 
 const brief = (r) => r.findings.map((f) => ({ ruleId: f.ruleId, severity: f.severity, file: f.file ?? null, line: f.line ?? null }));
@@ -160,6 +161,33 @@ test('every rule references a regime control that exists', () => {
     const y = parse(readFileSync(join(REPO, 'rules', f), 'utf8'));
     const refs = [...(y.regimes ?? []), ...(y.rules ?? []).flatMap((r) => r.regimes ?? [])];
     for (const ref of refs) assert.ok(regimes[ref.regime]?.has(ref.control), `${f}: ${ref.regime}/${ref.control}`);
+  }
+});
+
+test('every planned scaffold has the scaffolds it imports in the same plan', () => {
+  const people = (sensitivity, extra = {}) => [{ name: 'people', sensitivity, ...extra }];
+  const dpdp = [{ id: 'dpdp-2023' }];
+  const other = [{ id: 'nist-ssdf-1.1' }];
+  const ai = [{ name: 'triage', humanOversight: 'clinician-review' }];
+  const manifests = {
+    'dpdp, personal': { regimes: dpdp, dataCategories: people('personal') },
+    'dpdp, sensitive and children': { regimes: dpdp, dataCategories: people('sensitive-personal', { childrenDataPossible: true }) },
+    'dpdp, children on a not-personal category': { regimes: dpdp, dataCategories: people('not-personal', { childrenDataPossible: true }) },
+    'healthcare, no scaffold regime': { product: { name: 'x', domain: 'healthcare' }, regimes: other, dataCategories: people('sensitive-personal') },
+    'ai, no scaffold regime': { regimes: other, dataCategories: [], aiSystems: ai },
+    'iso only': { regimes: [{ id: 'iso-27001-2022' }], dataCategories: [] },
+  };
+  for (const [label, manifest] of Object.entries(manifests)) {
+    const dir = mkdtempSync(join(tmpdir(), 'sbd-plan-'));
+    writeFileSync(join(dir, 'privacy-security-manifest.yaml'), stringify({ schemaVersion: '0.2', product: { name: 'x' }, ...manifest }));
+    const items = JSON.parse(sbd(['plan', '--root', dir]).stdout);
+    assert.ok(items.length > 0, label);
+    const names = new Set(items.map((i) => i.target.replace(/^.*\/|\.ts$/g, '')));
+    for (const item of items) {
+      for (const [, name] of readFileSync(join(REPO, item.template), 'utf8').matchAll(/from '\.{1,2}\/(?:\w+\/)?(\w+)'/g)) {
+        assert.ok(names.has(name), `${label}: ${item.target} imports ${name}, which is not planned`);
+      }
+    }
   }
 });
 

@@ -42,6 +42,10 @@ export function configureRedaction(fields: string[]): void {
   sensitiveFieldNames = new Set(fields.map(f => f.toLowerCase()));
 }
 
+export function isSensitiveField(name: string): boolean {
+  return sensitiveFieldNames.has(name.toLowerCase());
+}
+
 const COMMON_PII_PATTERNS: RegExp[] = [
   /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g,        // emails
   /\b(?:\+?91[-\s]?)?[6-9]\d{9}\b/g,           // Indian phone numbers
@@ -51,6 +55,11 @@ const COMMON_PII_PATTERNS: RegExp[] = [
 
 function pseudonymize(value: string): string {
   return 'pii:' + createHash('sha256').update(value).digest('hex').slice(0, 12);
+}
+
+/** How a field named in configureRedaction() is masked. */
+export function maskSensitive(value: unknown): string {
+  return typeof value === 'string' ? pseudonymize(value) : '[REDACTED]';
 }
 
 export function redact<T>(value: T): T {
@@ -68,8 +77,8 @@ export function redact<T>(value: T): T {
   if (typeof value === 'object') {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      if (sensitiveFieldNames.has(k.toLowerCase())) {
-        out[k] = typeof v === 'string' ? pseudonymize(v) : '[REDACTED]';
+      if (isSensitiveField(k)) {
+        out[k] = maskSensitive(v);
       } else {
         out[k] = redact(v);
       }

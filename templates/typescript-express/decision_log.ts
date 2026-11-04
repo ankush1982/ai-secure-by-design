@@ -15,7 +15,7 @@
 // data-principal access (DPDP §11) for AI-mediated decisions.
 
 import { createHash } from 'node:crypto';
-import { auditLog } from '../security/audit_log';
+import { auditLog, redact } from '../security/audit_log';
 
 export interface DecisionContext {
   systemName: string;        // matches manifest.aiSystems[].name
@@ -67,7 +67,8 @@ export function setPreviewRedactor(r: (text: string) => string): void { previewR
 function previewOf(value: unknown): string | undefined {
   if (!previewRedactor) return undefined;
   const s = typeof value === 'string' ? value : JSON.stringify(value);
-  return previewRedactor(s.slice(0, 200));
+  // Redact before cutting: a value split at the cut no longer matches a pattern.
+  return previewRedactor(s).slice(0, 200);
 }
 
 /**
@@ -109,7 +110,8 @@ export async function decisionLog<T>(
       timestamp: new Date(startedAt).toISOString(),
       latencyMs: Date.now() - startedAt,
       outcome: 'failure',
-      error: e instanceof Error ? e.message : 'unknown',
+      // Model errors can echo the prompt, so the message is redacted here too.
+      error: e instanceof Error ? redact(e.message) || e.name : 'unknown',
     };
     await sink.write(record);
     await auditLog.event(`ai.${ctx.systemName}.inference`, {

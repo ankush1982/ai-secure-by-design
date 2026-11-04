@@ -45,6 +45,8 @@ export interface Rule {
   severity: Severity;
   severityWhen?: Array<{ condition: Condition; severity: Severity }>;
   when?: Condition[];
+  /** On top of `when`, at least one of these lists must hold in full. */
+  whenAny?: Condition[][];
   files?: string[];
   pattern?: string;
   flags?: string;

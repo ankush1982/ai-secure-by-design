@@ -15,8 +15,8 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from .audit_log import is_sensitive_field, mask_sensitive, to_plain
 from .audit_log import redact as base_redact
-from .audit_log import to_plain
 
 PHI_PLACEHOLDER = '[PHI_REDACTED]'
 
@@ -61,6 +61,12 @@ def _redact_exception(error: BaseException) -> RedactedError:
     return copy
 
 
+def _redact_field(name: str, value: Any) -> Any:
+    if name.lower() in CLINICAL_FIELD_NAMES:
+        return PHI_PLACEHOLDER
+    return mask_sensitive(value) if is_sensitive_field(name) else phi_redact(value)
+
+
 def phi_redact(value: Any) -> Any:
     """
     Redact PHI from any value before it enters a log / error / external sink.
@@ -85,10 +91,7 @@ def phi_redact(value: Any) -> Any:
         return [phi_redact(v) for v in value]
 
     if isinstance(value, Mapping):
-        return {
-            str(k): PHI_PLACEHOLDER if str(k).lower() in CLINICAL_FIELD_NAMES else phi_redact(v)
-            for k, v in value.items()
-        }
+        return {str(k): _redact_field(str(k), v) for k, v in value.items()}
 
     return base_redact(value)
 

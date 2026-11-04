@@ -9,7 +9,9 @@
 
 import { createHash } from 'node:crypto';
 
-export type ConsentBasis = 'explicit' | 'contract' | 'public-interest' | 'medical-emergency' | 'employment';
+// 'explicit' is consent under §6. The rest are §7 legitimate uses; §7 has no general
+// "contract" ground, so there is no such value here.
+export type ConsentBasis = 'explicit' | 'public-interest' | 'medical-emergency' | 'employment';
 
 export type ConsentPurpose = string; // e.g. 'patient.diagnosis.ai-suggestion'
 
@@ -55,13 +57,13 @@ export function hashConsentText(text: string): string {
 /**
  * Record a consent event. Call when the data principal clicks "I agree" on a notice.
  *
- * DPDP §6 requirements this satisfies:
- *  - Free, specific, informed, unconditional, unambiguous
+ * DPDP §6 points this helps with:
  *  - Recorded with purpose
  *  - Recorded with the notice text actually shown (via consentTextHash)
- *  - Withdrawable (withdraw() below)
+ *  - Withdrawable (withdrawConsent() below)
  *
- * NOT satisfied by this function alone — you must also:
+ * NOT handled by this function — you must also:
+ *  - Keep consent free, specific, informed, unconditional and unambiguous
  *  - Present the notice in a clear language (§5(3))
  *  - Make withdrawal as easy as giving consent (§6(4))
  *  - Refrain from making consent a precondition for service provision unless the

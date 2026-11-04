@@ -1,6 +1,9 @@
 # Required scaffolds. A scaffold is present when any candidate file exists:
 #   <dir>/<name>.<ext> for each ext, with name in snake_case or kebab-case.
 # Template sources live in templates/<stack>/<template><ext>, and deploy to <dir>/<name><ext>.
+# A scaffold applies when all of `when` holds and, if set, all of at least one `whenAny` list.
+# A scaffold must apply wherever a scaffold that imports it applies, or the deployed set
+# does not import. audit_log and consent list their importers' conditions for that reason.
 schemaVersion: "0.2"
 # Stack id (manifest product.stack, or --stack) to file extension. A stack listed here with
 # no templates/<stack>/ folder is known but not supported yet; `sbd plan` shows it as a gap.
@@ -9,13 +12,13 @@ stacks:
   typescript-nextjs: .ts
   python-fastapi: .py
 rules:
-  - { id: SBD-SCAF-001, kind: scaffold, title: Consent scaffold, severity: CRITICAL, when: ["regime:dpdp-2023", "personalData"], dir: src/privacy, name: consent, template: consent, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-013 }, { regime: dpdp-2023, control: consent }] }
+  - { id: SBD-SCAF-001, kind: scaffold, title: Consent scaffold, severity: CRITICAL, when: ["regime:dpdp-2023"], whenAny: [["personalData"], ["childrenData"]], dir: src/privacy, name: consent, template: consent, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-013 }, { regime: dpdp-2023, control: consent }] }
   - { id: SBD-SCAF-002, kind: scaffold, title: Data principal rights handler, severity: HIGH, when: ["regime:dpdp-2023", "personalData"], dir: src/privacy, name: dsr_handler, template: dsr_handler, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-013 }, { regime: dpdp-2023, control: right-to-access }, { regime: dpdp-2023, control: right-to-correction-erasure }] }
   - { id: SBD-SCAF-003, kind: scaffold, title: Retention runner, severity: HIGH, when: ["regime:dpdp-2023", "personalData"], dir: src/privacy, name: retention_runner, template: retention_runner, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-013 }, { regime: dpdp-2023, control: retention }] }
   - { id: SBD-SCAF-004, kind: scaffold, title: Children's data gate, severity: CRITICAL, when: ["regime:dpdp-2023", "childrenData"], dir: src/privacy, name: children_gate, template: children_gate, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-013 }, { regime: dpdp-2023, control: children-data }] }
   - { id: SBD-SCAF-005, kind: scaffold, title: Breach notifier, severity: HIGH, when: ["regime:dpdp-2023", "sensitiveData"], dir: src/privacy, name: breach_notifier, template: breach_notifier, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-035 }, { regime: dpdp-2023, control: breach-notification }] }
   - { id: SBD-SCAF-006, kind: scaffold, title: RBAC scaffold, severity: HIGH, when: ["regime:iso-27001-2022"], dir: src/security, name: rbac, template: rbac, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-016 }, { regime: iso-27001-2022, control: rbac-scaffold }] }
-  - { id: SBD-SCAF-007, kind: scaffold, title: Audit log, severity: HIGH, when: ["regime:iso-27001-2022"], dir: src/security, name: audit_log, template: audit_log, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-008 }, { regime: iso-27001-2022, control: logging }] }
+  - { id: SBD-SCAF-007, kind: scaffold, title: Audit log, severity: HIGH, whenAny: [["regime:iso-27001-2022"], ["regime:dpdp-2023", "personalData"], ["regime:dpdp-2023", "childrenData"], ["healthcare", "sensitiveData"], ["aiSystems"]], dir: src/security, name: audit_log, template: audit_log, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-008 }, { regime: iso-27001-2022, control: logging }, { regime: dpdp-2023, control: data-fiduciary-duties }] }
   - { id: SBD-SCAF-008, kind: scaffold, title: Security headers, severity: MEDIUM, when: ["regime:iso-27001-2022"], dir: src/security, name: security_headers, template: security_headers, regimes: [{ regime: iso-27001-2022, control: secure-sdlc }] }
   - { id: SBD-SCAF-009, kind: scaffold, title: PHI redaction, severity: HIGH, when: ["healthcare", "sensitiveData"], dir: src/security, name: phi_redaction, template: phi_redaction, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-017 }, { regime: iso-27001-2022, control: data-masking }] }
   - { id: SBD-SCAF-010, kind: scaffold, title: AI decision log, severity: HIGH, when: ["aiSystems"], dir: src/ai, name: decision_log, template: decision_log, regimes: [{ regime: ai-security-wiki, control: AI-CTRL-008 }, { regime: iso-27001-2022, control: logging }] }

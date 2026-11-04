@@ -183,7 +183,7 @@ The instruction files are generated from `instructions/agent-instructions.md` by
 - `src/security/audit_log.ts` — ISO 27001 A.8.15 logging scaffold
 - `src/security/security_headers.ts` — OWASP-aligned defaults
 - `src/security/phi_redaction.ts` — healthcare PHI redaction helper
-- `src/ai/decision_log.ts` — AI decision logging (ISO 42001-ready)
+- `src/ai/decision_log.ts` — AI decision logging
 - `src/ai/human_oversight.ts` — human-in-the-loop gate
 - `privacy-security-manifest.yaml` — single source of truth for your data + regimes
 
