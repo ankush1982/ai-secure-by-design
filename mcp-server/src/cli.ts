@@ -7,13 +7,19 @@ import { readFileSync, writeFileSync, writeSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import {
+  applyDeploy,
+  applyInit,
+  deployText,
   evidenceCsv,
   evidenceMarkdown,
   evidencePlan,
   evidenceText,
   explainControl,
+  initText,
   listControls,
   loadManifest,
+  planDeploy,
+  planInit,
   planScaffold,
   runCheck,
   scanLines,
@@ -33,6 +39,10 @@ import {
 const USAGE = `sbd ${VERSION} — secure-by-design checks
 
 Usage:
+  sbd init      --non-interactive [--root DIR] [--manifest FILE] [--regime ID]...
+                [--stack STACK] [--dry-run] [--format text|json]
+  sbd deploy    [--root DIR] [--manifest FILE] [--stack STACK] [--dry-run] [--force]
+                [--format text|json]
   sbd check     [--root DIR] [--manifest FILE] [--diff RANGE | --staged]
                 [--format text|json|sarif] [--output FILE] [--fail-on LEVEL]
   sbd scan      [--staged | --stdin | FILE...] [--format ...] [--fail-on LEVEL]
@@ -46,7 +56,12 @@ Usage:
   sbd hook claude-pretooluse     (reads Claude Code hook JSON on stdin)
 
 LEVEL is critical|high|medium|low|info|none (default: high).
-Exit codes: 0 clean, 1 findings at or above --fail-on, 2 error.`;
+Exit codes: 0 clean, 1 findings at or above --fail-on, 2 error.
+
+init writes a draft manifest with TODO(user): markers. It never classifies a field, lists
+only the regimes you pass with --regime, and never overwrites an existing manifest.
+deploy copies the required scaffolds. It leaves edited or user-authored files alone unless
+--force is set, is safe to re-run, and exits 1 if a required scaffold could not be deployed.`;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -59,9 +74,12 @@ const { values, positionals } = parseArgs({
     format: { type: 'string', default: 'text' },
     output: { type: 'string' },
     'fail-on': { type: 'string', default: 'high' },
-    regime: { type: 'string', default: 'all' },
-    stack: { type: 'string', default: 'typescript-express' },
+    regime: { type: 'string', multiple: true },
+    stack: { type: 'string' },
     tier: { type: 'string' },
+    'non-interactive': { type: 'boolean', default: false },
+    'dry-run': { type: 'boolean', default: false },
+    force: { type: 'boolean', default: false },
     help: { type: 'boolean', short: 'h', default: false },
     version: { type: 'boolean', short: 'v', default: false },
   },
@@ -152,6 +170,17 @@ function claudePreToolUse(): never {
   process.exit(2); // exit 2 blocks the tool call; stderr is the reason shown to the agent
 }
 
+/** --regime may repeat or take a comma-separated list. */
+function regimeArgs(): string[] {
+  return (values.regime ?? []).flatMap((r) => r.split(',')).map((r) => r.trim()).filter(Boolean);
+}
+
+/** `init` and `deploy` write files, so a bad --format has to fail before they do. */
+function planFormat(): 'text' | 'json' {
+  if (values.format === 'text' || values.format === 'json') return values.format;
+  fail(`unknown --format ${values.format}`);
+}
+
 const PROVENANCE = /\[(human|ai-human-pair|ai:[a-z0-9._-]+)\]|^AI-Assistance:\s*\S+/im;
 
 function provenance(file: string | undefined): never {
@@ -189,6 +218,30 @@ function main(): void {
   const root = resolve(values.root ?? '.');
 
   switch (cmd) {
+    case 'init': {
+      if (!values['non-interactive']) fail('sbd init needs --non-interactive; the interview runs through /sbd-init or the sbd-init MCP prompt');
+      const format = planFormat();
+      const dryRun = values['dry-run'] ?? false;
+      const p = planInit({ root, manifestPath: values.manifest, regimes: regimeArgs(), stack: values.stack });
+      if (!dryRun) applyInit(root, p);
+      if (format === 'json') emit(JSON.stringify({ ...p, dryRun }, null, 2));
+      else emit(dryRun && p.draft ? `${p.draft}\n---\n${initText(p, true)}` : initText(p, dryRun));
+      return;
+    }
+    case 'deploy': {
+      const format = planFormat();
+      const rel = values.manifest ?? 'privacy-security-manifest.yaml';
+      const { manifest, findings } = loadManifest(confine(root, rel), rel);
+      if (!manifest) {
+        render(result(root, rel, undefined, findings));
+        process.exit(1);
+      }
+      const dryRun = values['dry-run'] ?? false;
+      const p = planDeploy(root, manifest, { stack: values.stack, force: values.force });
+      const written = dryRun ? [] : applyDeploy(root, p);
+      emit(format === 'json' ? JSON.stringify({ ...p, dryRun, written }, null, 2) : deployText(p, dryRun));
+      process.exit(p.summary.blocked ? 1 : 0);
+    }
     case 'check': {
       if (values.diff && values.staged) fail('use --diff or --staged, not both');
       const r = runCheck({ root, manifestPath: values.manifest, diff: values.diff, staged: values.staged });
@@ -214,9 +267,12 @@ function main(): void {
       render(result(root, rel, undefined, findings));
       exitFor(findings);
     }
-    case 'controls':
-      emit(JSON.stringify(listControls(values.regime), null, 2));
+    case 'controls': {
+      const regimes = regimeArgs();
+      if (regimes.length > 1) fail('controls takes one --regime');
+      emit(JSON.stringify(listControls(regimes[0]), null, 2));
       return;
+    }
     case 'explain': {
       const [regime, control] = rest;
       if (!regime || !control) fail('explain needs REGIME CONTROL');

@@ -11,7 +11,7 @@ Treat yourself as a **privacy-by-design and secure-by-design copilot** in additi
 
 Checks that must give the same answer every time are done by the `sbd` engine, not by you. Do not re-derive them by reading code.
 
-- Use the plugin's MCP tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`.
+- Use the plugin's MCP tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_plan_init`, `sbd_plan_deploy`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`.
 - Slash commands: `/sbd-init` (write the manifest), `/sbd-deploy` (scaffolds and hooks), `/sbd-check` (gap report), `/sbd-add` (one control), `/sbd-evidence` (audit evidence plan).
 - If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" check`.
 - Report the engine's findings as they are, with rule IDs and `file:line`. Add your own observations separately, labelled as judgement.

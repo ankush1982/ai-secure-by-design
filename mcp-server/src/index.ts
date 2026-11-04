@@ -6,7 +6,9 @@
 //   sbd-mcp --http [--port 8765]  Streamable HTTP on 127.0.0.1 (opt-in)
 //
 // Tools (all read-only): sbd_validate_manifest, sbd_check, sbd_scan_text, sbd_review_diff,
-// sbd_list_controls, sbd_explain_control, sbd_plan_scaffold, sbd_evidence_plan.
+// sbd_list_controls, sbd_explain_control, sbd_plan_scaffold, sbd_plan_init, sbd_plan_deploy,
+// sbd_evidence_plan. The two plan tools report what `sbd init` and `sbd deploy` would write;
+// only the CLI writes.
 // Prompts: sbd-init, sbd-check, sbd-deploy. Resources: regime catalogues, schemas, manifest.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -26,6 +28,8 @@ import {
   loadManifest,
   loadRegimes,
   parseUnifiedDiff,
+  planDeploy,
+  planInit,
   planScaffold,
   result,
   runCheck,
@@ -176,7 +180,7 @@ export function buildServer(root: string): McpServer {
       description: 'List the scaffolds the manifest requires, where each goes, its template, and whether it is already present. Writes nothing.',
       inputSchema: {
         manifestPath: manifestArg,
-        stack: z.string().optional().describe('Template stack, default typescript-express.'),
+        stack: z.string().optional().describe('Template stack. Default: product.stack in the manifest, then detection, then typescript-express.'),
       },
       annotations: READ_ONLY,
     },
@@ -185,6 +189,43 @@ export function buildServer(root: string): McpServer {
         const rel = manifestPath ?? DEFAULT_MANIFEST;
         const { manifest, findings } = loadManifest(confine(root, rel), rel);
         return manifest ? json(planScaffold(root, manifest, stack)) : json(result(root, rel, undefined, findings));
+      }),
+  );
+
+  server.registerTool(
+    'sbd_plan_init',
+    {
+      title: 'Plan a draft manifest',
+      description:
+        'Detect the stack and personal-looking fields, and return the draft manifest `sbd init --non-interactive` would write, with TODO(user): markers. Never classifies a field or picks a regime. Writes nothing; an existing manifest is reported as a skip.',
+      inputSchema: {
+        manifestPath: manifestArg,
+        regimes: z.array(z.string()).optional().describe('Regime ids the user chose. Never fill these in yourself.'),
+        stack: z.string().optional().describe('The stack, if the user chose one. Default: detection.'),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ manifestPath, regimes, stack }) => guard(() => json(planInit({ root, manifestPath, regimes, stack }))),
+  );
+
+  server.registerTool(
+    'sbd_plan_deploy',
+    {
+      title: 'Plan a deploy',
+      description:
+        'Report what `sbd deploy` would do to each required scaffold: create, update, overwrite, skip (edited or user-authored) or blocked. Writes nothing; the user runs `sbd deploy` to apply it.',
+      inputSchema: {
+        manifestPath: manifestArg,
+        stack: z.string().optional().describe('Template stack. Default: product.stack in the manifest, then detection.'),
+        force: z.boolean().optional().describe('Plan as if --force were set.'),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ manifestPath, stack, force }) =>
+      guard(() => {
+        const rel = manifestPath ?? DEFAULT_MANIFEST;
+        const { manifest, findings } = loadManifest(confine(root, rel), rel);
+        return manifest ? json(planDeploy(root, manifest, { stack, force })) : json(result(root, rel, undefined, findings));
       }),
   );
 

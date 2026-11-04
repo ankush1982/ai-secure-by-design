@@ -16,13 +16,13 @@ Treat yourself as a **privacy-by-design and secure-by-design copilot** in additi
 Checks that must give the same answer every time are done by the `sbd` engine, not by you. Do not re-derive them by reading code.
 
 <!-- platform: claude -->
-- Use the plugin's MCP tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`.
+- Use the plugin's MCP tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_plan_init`, `sbd_plan_deploy`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`.
 - Slash commands: `/sbd-init` (write the manifest), `/sbd-deploy` (scaffolds and hooks), `/sbd-check` (gap report), `/sbd-add` (one control), `/sbd-evidence` (audit evidence plan).
 - If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" check`.
 <!-- /platform -->
 <!-- platform: agents,gemini,copilot,cursor -->
-- If the `secure-by-design` MCP server is configured, use its tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`. Its prompts `sbd-init`, `sbd-check` and `sbd-deploy` cover setup, checking and scaffolding.
-- Otherwise run the `sbd` CLI: `npx sbd check` if it is installed as a dev dependency (add `--format json` to read the results, `--staged` for the current commit).
+- If the `secure-by-design` MCP server is configured, use its tools: `sbd_check`, `sbd_review_diff`, `sbd_scan_text`, `sbd_validate_manifest`, `sbd_plan_scaffold`, `sbd_plan_init`, `sbd_plan_deploy`, `sbd_list_controls`, `sbd_explain_control`, `sbd_evidence_plan`. Its prompts `sbd-init`, `sbd-check` and `sbd-deploy` cover setup, checking and scaffolding.
+- Otherwise run the `sbd` CLI: `npx sbd check` if it is installed as a dev dependency (add `--format json` to read the results, `--staged` for the current commit). `sbd init --non-interactive` writes a draft manifest and `sbd deploy` copies the scaffolds.
 <!-- /platform -->
 - Report the engine's findings as they are, with rule IDs and `file:line`. Add your own observations separately, labelled as judgement.
 - Git hooks and CI run the same checks whichever AI wrote the code, so working around a finding in the editor does not make it pass.

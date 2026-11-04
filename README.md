@@ -50,12 +50,26 @@ node /path/to/ai-secure-by-design/dist/sbd.mjs check
 
 Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-secure-by-design#<tag-or-sha>`) and run `npx sbd check`. It is not published to the npm registry yet.
 
+To set up a project without an AI assistant, choose your regimes and run:
+
+```bash
+sbd init --non-interactive --regime nist-ssdf-1.1,iso-27001-2022   # writes a draft manifest
+sbd validate
+sbd deploy --dry-run                                               # shows what would change
+sbd deploy                                                         # copies the scaffolds
+sbd plan                                                           # every scaffold now shows as present
+```
+
+The draft never decides for you. It leaves `dataCategories` empty and lists the personal-looking fields as `TODO(user):` comments, because classification is yours. Without `--regime` it leaves `regimes` empty, and `validate`, `plan` and `deploy` stop with a schema error until you add one. Scaffolds that depend on your data, such as consent and DSR handling, are required only once you declare personal data in the manifest.
+
 | Command | What it does |
 |---|---|
+| `sbd init --non-interactive [--regime ID]... [--stack STACK] [--dry-run]` | Detects the stack and writes a draft `privacy-security-manifest.yaml` with `TODO(user):` markers. Never classifies a field, lists only the regimes you pass, and never overwrites an existing manifest. |
+| `sbd deploy [--stack STACK] [--dry-run] [--force]` | Copies the scaffolds the manifest requires, each with its template checksum in the generator header. Safe to re-run: it updates scaffolds you have not touched and leaves edited or user-authored files alone unless you pass `--force`. Exits `1` if a required scaffold could not be deployed, for example because the stack has no template. |
 | `sbd check [--diff RANGE \| --staged] [--format text\|json\|sarif] [--output FILE] [--fail-on LEVEL]` | All checks: manifest schema and semantics, secrets, unclassified personal-looking fields, required scaffolds, audit-log coverage, personal data in logs, AI decision logging |
 | `sbd scan --staged \| --stdin \| FILE...` | Secret scan only (used by hooks) |
 | `sbd validate` | Manifest only |
-| `sbd plan [--stack STACK]` | Which scaffolds the manifest needs, where they go, and whether they exist. Writes nothing. |
+| `sbd plan [--stack STACK]` | Which scaffolds the manifest needs, where they go, and whether they exist. Writes nothing. The stack comes from `--stack`, then `product.stack`, then detection. |
 | `sbd controls [--regime ID]`, `sbd explain REGIME CONTROL` | Query the regime catalogues |
 | `sbd provenance MSGFILE` | Commit-message provenance check |
 
@@ -92,7 +106,7 @@ node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo    
 node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo --http   # http://127.0.0.1:8765/mcp
 ```
 
-- **Tools** (all read-only): `sbd_validate_manifest`, `sbd_check`, `sbd_scan_text`, `sbd_review_diff`, `sbd_list_controls`, `sbd_explain_control`, `sbd_plan_scaffold`, `sbd_evidence_plan`.
+- **Tools** (all read-only): `sbd_validate_manifest`, `sbd_check`, `sbd_scan_text`, `sbd_review_diff`, `sbd_list_controls`, `sbd_explain_control`, `sbd_plan_scaffold`, `sbd_plan_init`, `sbd_plan_deploy`, `sbd_evidence_plan`. `sbd_plan_init` and `sbd_plan_deploy` return what `sbd init` and `sbd deploy` would do. Only the CLI writes files.
 - **Prompts**: `sbd-init`, `sbd-check`, `sbd-deploy` (from `instructions/prompts/`).
 - **Resources**: `sbd://regimes/{id}`, `sbd://schemas/{manifest,regime,rules}`, `sbd://manifest`.
 - Every path argument is confined to `--root`.
