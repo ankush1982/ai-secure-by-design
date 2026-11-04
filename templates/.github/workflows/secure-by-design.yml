@@ -23,8 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      # Pin this to a release tag or full commit SHA before relying on it (supply-chain hygiene).
-      - uses: ankush1982/ai-secure-by-design@main
+      # Pinned to a release (supply-chain hygiene). A full commit SHA is stricter still.
+      - uses: ankush1982/ai-secure-by-design@v0.2.0
         with:
           fail-on: high
           # On pull requests, only report lines the PR adds:

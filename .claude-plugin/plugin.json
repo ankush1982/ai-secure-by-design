@@ -1,6 +1,6 @@
 {
   "name": "secure-by-design",
-  "version": "0.2.0-dev",
+  "version": "0.2.0",
   "description": "Privacy-by-design and secure-by-design controls for products subject to NIST SSDF, ISO 27001:2022, and India DPDP Act 2023. Profiles your project, asks which regimes apply, then deploys dev-loop guardrails and product-code scaffolds.",
   "author": {
     "name": "Ankush Jain",

@@ -13,7 +13,7 @@
 - [x] PR template + GitHub Actions workflow
 - [x] MCP server skeleton (validate-manifest, list-controls)
 
-## v0.2 — platform-neutral engine (in progress on `v0.2-platform-neutral`)
+## v0.2 — platform-neutral engine (released as v0.2.0)
 
 - [x] JSON Schemas for the manifest, regime catalogues and rules (`schemas/`)
 - [x] `sbd` CLI and library: `check`, `scan`, `validate`, `plan`, `controls`, `explain`, `provenance`; text, JSON and SARIF 2.1.0 output; exit codes
@@ -28,12 +28,12 @@
 - [x] Scaffolds type-check in `npm test`, and `decision_log` no longer needs `phi_redaction`
 - [x] AI Security Wiki integration: opt-in `ai-security-wiki` regime, `AIW-*` rules, MCP configuration checks, `sbd evidence`, `/sbd-evidence`, `sbd: ignore`
 - [x] Literal PII rules (`SBD-PII-*`), whole-object logging (`SBD-CODE-004`) and health identifiers in schema fields
-- [ ] Cross-platform evaluation harness (same prompts through each adapter, diff the results)
-- [ ] Signed releases, SBOM, permissions statement
 - [x] `init --non-interactive` and `deploy` in the CLI, with read-only plans through MCP (`sbd_plan_init`, `sbd_plan_deploy`)
 
 ## v0.2.x — first feedback round
 
+- [ ] Cross-platform evaluation harness (same prompts through each adapter, diff the results)
+- [ ] Signed releases, SBOM, permissions statement
 - [x] Python + FastAPI scaffold templates (mirror of TS set)
 - [ ] TypeScript + Next.js scaffold templates (app-router-aware)
 - [ ] Indian data-privacy lawyer review of the DPDP scaffolds and disclaimers
