@@ -146,6 +146,6 @@ securityControls:
 
 # Metadata
 manifest:
-  generatedBy: secure-by-design v0.2.0
+  generatedBy: secure-by-design v0.2.1
   generatedAt: TODO(generator)
   lastEditedAt: TODO(generator)

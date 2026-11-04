@@ -128,7 +128,7 @@ cd /path/to/your/repo
 node /path/to/ai-secure-by-design/dist/sbd.mjs check
 ```
 
-Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-secure-by-design#v0.2.0`) and run `npx sbd check`. It is not published to the npm registry yet.
+Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-secure-by-design#v0.2.1`) and run `npx sbd check`. It is not published to the npm registry yet.
 
 To set up a project without an AI assistant, choose your regimes and run:
 
@@ -167,7 +167,7 @@ Add to your repo's `.pre-commit-config.yaml` ([pre-commit](https://pre-commit.co
 ```yaml
 repos:
   - repo: https://github.com/ankush1982/ai-secure-by-design
-    rev: v0.2.0   # pin it
+    rev: v0.2.1   # pin it
     hooks:
       - id: sbd-secrets
       - id: sbd-check
@@ -287,7 +287,7 @@ Apache-2.0, see [LICENSE](./LICENSE), except `regimes/ai-security-wiki.yaml` and
 
 ## Status
 
-v0.2.0 is the current release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation, and the DPDP scaffolds have not had a legal review. See the [roadmap](./ROADMAP.md).
+v0.2.1 is the current release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation, and the DPDP scaffolds have not had a legal review. See the [roadmap](./ROADMAP.md).
 
 ## Contributing and security
 

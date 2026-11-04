@@ -14654,7 +14654,7 @@ function severityAtLeast(s, threshold) {
 var WIKI_REGIME = "ai-security-wiki";
 
 // mcp-server/src/core/version.ts
-var VERSION = "0.2.0";
+var VERSION = "0.2.1";
 
 // mcp-server/src/core/check.ts
 import { existsSync as existsSync3 } from "node:fs";
