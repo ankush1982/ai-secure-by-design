@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
 import { CLI, FAKE, FIXTURE, REPO, json, sbd, tempFixture } from './helpers.mjs';
 
@@ -133,6 +133,94 @@ test('example manifest is valid and has no findings', () => {
 
 test('R-E2: contract ground under DPDP is flagged', () => {
   assert.ok(json(['check', '--root', tempFixture()]).findings.some((f) => f.ruleId === 'SBD-MANIFEST-008'));
+});
+
+function probe(files, regimes = 'iso-27001-2022') {
+  const dir = mkdtempSync(join(tmpdir(), 'sbd-pii-'));
+  writeFileSync(join(dir, 'privacy-security-manifest.yaml'), `schemaVersion: "0.2"\nproduct: { name: x }\nregimes:\n  - id: ${regimes}\ndataCategories:\n  - { name: people, sensitivity: personal, fields: [email], consentRequired: false }\n`);
+  for (const [name, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(dir, name)), { recursive: true });
+    writeFileSync(join(dir, name), text);
+  }
+  return json(['check', '--root', dir]).findings.filter((f) => !f.ruleId.startsWith('SBD-SCAF'));
+}
+
+// UIDAI's published sandbox number; the rest is assembled at run time, as with FAKE secrets.
+const AADHAAR = ['9999', '9999', '0019'];
+const PAN = 'ABCP' + 'D1234F';
+const MOBILE = '98' + '12345678';
+const EMAIL = 'jane.doe' + '@acme.in';
+
+test('literal personal data is found, and the report never repeats it', () => {
+  const found = probe({ 'src/a.ts': [
+    `const a = "${AADHAAR.join(' ')}";`,
+    `const b = "${AADHAAR.join('')}";`,
+    `const p = "${PAN}";`,
+    `const m = "+91 ${MOBILE}";`,
+    `const n = "${MOBILE}";`,
+    `const e = "${EMAIL}";`,
+  ].join('\n') });
+  assert.deepEqual(found.map((f) => [f.ruleId, f.line]), [
+    ['SBD-PII-001', 1], ['SBD-PII-001', 2], ['SBD-PII-002', 3], ['SBD-PII-003', 4], ['SBD-PII-003', 5], ['SBD-PII-004', 6],
+  ]);
+  for (const f of found) {
+    for (const value of [AADHAAR[0], PAN, MOBILE, EMAIL]) assert.ok(!f.snippet.includes(value), f.snippet);
+  }
+  assert.ok(found.every((f) => f.regimes.every((r) => r.regime === 'iso-27001-2022')), 'cites only the picked regime');
+});
+
+test('literal personal data checks skip look-alikes', () => {
+  const found = probe({
+    'src/a.ts': [
+      'const notAadhaar = "2345 6789 0123";',          // fails the checksum
+      `const card = "${AADHAAR.join(' ')} 4567";`,     // part of a longer number
+      `const lower = "${PAN.toLowerCase()}";`,
+      'const id = 9812345678;',                        // a bare number is not a phone
+      'const fake = "9876543210";',
+      'const same = "9999999999";',
+      'const a = "jane@example.com";',
+      'const b = "support@acme.in";',
+      'const c = "git@github.com:org/repo.git";',
+      'const d = "logo@2x.png";',
+      `const reviewed = "${PAN}"; // sbd: ignore SBD-PII-002 sample from the spec`,
+    ].join('\n'),
+    'README.md': `Contact ${EMAIL}\n`,
+    'package-lock.json': `{"pan": "${PAN}"}\n`,
+    'package.json': `{"author": "${EMAIL}"}\n`,
+  });
+  assert.deepEqual(found, []);
+});
+
+test('whole request and user objects in logs are flagged, fields and redaction are not', () => {
+  const flagged = [
+    'console.log(req.body);',
+    'console.log(user);',
+    "console.log('saved', patient);",
+    'console.error(JSON.stringify(req.body));',
+    'logger.info({ user });',
+    'console.log(`got ${user}`);',
+    'print(request.headers)',
+    'logging.info("body %s", await request.body())',
+    'print(f"{user}")',
+    'logger.info(patient.model_dump())',
+  ];
+  const clean = [
+    "console.log('loaded user');",
+    "console.log('user created', user.id);",
+    'console.log(req.body.id);',
+    'console.log(redact(req.body));',
+    "logger.info('ok', phiRedact(patient));",
+    'console.log(count);',
+  ];
+  const found = probe({ 'src/a.ts': [...flagged, ...clean].join('\n') }).filter((f) => f.ruleId === 'SBD-CODE-004');
+  assert.deepEqual(found.map((f) => f.line), flagged.map((_, i) => i + 1));
+});
+
+test('health identifiers and clinical schema fields need classifying', () => {
+  const names = ['mrn', 'bloodGroup', 'insurancePolicy', 'allergies', 'currentMedication', 'abhaNumber', 'uhid'];
+  const prisma = `model P {\n  id Int @id\n${names.map((n) => `  ${n} String`).join('\n')}\n}\n`;
+  const found = probe({ 'prisma/schema.prisma': prisma }).filter((f) => f.ruleId === 'SBD-FIELD-001');
+  assert.equal(found.length, names.length);
 });
 
 test('schema errors become findings, not crashes', () => {

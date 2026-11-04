@@ -1,0 +1,54 @@
+# Literal personal data in source and data files. `sbd check` reports these; `sbd scan`
+# stays secrets-only. Snippets hide the matched value, so a report never repeats it.
+#   validate — a named check in mcp-server/src/core/scan.ts that each match must also pass
+#
+# These rules need a pattern to match, so they do not find names, addresses or clinical
+# free text. To accept reviewed sample data, add a comment containing
+# `sbd: ignore SBD-PII-001` to the line and record why.
+schemaVersion: "0.2"
+rules:
+  - id: SBD-PII-001
+    title: Aadhaar number in source
+    kind: pii
+    severity: HIGH
+    files: &data [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".rb", ".sql", ".csv", ".json", ".yaml", ".yml", ".env"]
+    pattern: '(?<![\d-])[2-9]\d{3}[ -]?\d{4}[ -]?\d{4}(?![\d]|[ -]\d)'
+    validate: aadhaar
+    regimes: &pii
+      - { regime: ai-security-wiki, control: AI-CTRL-017 }
+      - { regime: iso-27001-2022, control: pii-protection }
+      - { regime: dpdp-2023, control: data-fiduciary-duties }
+    message: Value passes the Aadhaar format and checksum. Personal data does not belong in the repository.
+    remediation: Remove it and purge it from git history if it is real. Use generated data for tests and seeds.
+
+  - id: SBD-PII-002
+    title: PAN in source
+    kind: pii
+    severity: HIGH
+    files: *data
+    pattern: '\b[A-Z]{3}[ABCFGHJLPT][A-Z]\d{4}[A-Z]\b'
+    regimes: *pii
+    message: Value matches the PAN format. Personal data does not belong in the repository.
+    remediation: Remove it and purge it from git history if it is real. Use generated data for tests and seeds.
+
+  - id: SBD-PII-003
+    title: Indian mobile number in source
+    kind: pii
+    severity: MEDIUM
+    files: *data
+    pattern: '(?<![\w+])\+91[ -]?[6-9]\d{4}[ -]?\d{5}\b|(?<=["''`])[6-9]\d{9}(?=["''`])'
+    validate: indian-mobile
+    regimes: *pii
+    message: Value looks like an Indian mobile number. Personal data does not belong in the repository.
+    remediation: Remove it if it is real. Use generated data for tests and seeds.
+
+  - id: SBD-PII-004
+    title: Email address in source
+    kind: pii
+    severity: MEDIUM
+    files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".rb", ".sql", ".csv"]
+    pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b'
+    validate: email
+    regimes: *pii
+    message: Value looks like a person's email address. Personal data does not belong in the repository.
+    remediation: Remove it if it is real. Use an address at example.com in tests and seeds.

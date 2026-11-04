@@ -1,5 +1,6 @@
 // Secret scanning over text. Shared by `sbd scan`, `sbd check`, the git hooks,
-// the agent hooks and the MCP tool sbd_scan_text.
+// the agent hooks and the MCP tool sbd_scan_text. Literal personal data is scanned here
+// too, for `sbd check` only.
 import { loadRules } from './load.js';
 import type { Finding, Rule } from './types.js';
 
@@ -58,6 +59,67 @@ export function scanLines(lines: TextLine[], file?: string): Finding[] {
 
 export function scanText(text: string, file?: string): Finding[] {
   return scanLines(text.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t })), file);
+}
+
+const LOCKFILE = /(^|\/)(package-lock\.json|pnpm-lock\.yaml)$/;
+const PLACEHOLDER_EMAIL_DOMAIN = /(^|\.)(example\.(com|org|net)|example|test|invalid|local|localhost|domain\.com|yourdomain\.com|test\.com|foo\.com|bar\.com)$/i;
+const ROLE_MAILBOX = /^(no-?reply|do-?not-?reply|git|support|info|admin|hello|contact|sales|security|privacy|legal|help|team|dpo|abuse|postmaster|webmaster)$/i;
+const FILE_SUFFIX = /\.(png|jpe?g|gif|svg|webp)$/i;
+
+// The Verhoeff check digit that closes every Aadhaar number. The tables are not phone numbers.
+const VERHOEFF_D = ['0123456789', '1234067895', '2340178956', '3401289567', '4012395678', '5987604321', '6598710432', '7659821043', '8765932104', '9876543210']; // sbd: ignore SBD-PII-003
+const VERHOEFF_P = ['0123456789', '1576283094', '5803796142', '8916043527', '9453126870', '4286573901', '2793806415', '7046913258']; // sbd: ignore SBD-PII-003
+
+function passesVerhoeff(digits: string): boolean {
+  let c = 0;
+  [...digits].reverse().forEach((d, i) => {
+    c = Number(VERHOEFF_D[c]![Number(VERHOEFF_P[i % 8]![Number(d)])]);
+  });
+  return c === 0;
+}
+
+function isPlaceholderNumber(digits: string): boolean {
+  return /^(\d)\1+$/.test(digits) || '0123456789'.includes(digits) || '9876543210'.includes(digits);
+}
+
+/** Named checks that keep a pattern match from being a false positive. */
+const VALIDATORS: Record<NonNullable<Rule['validate']>, (value: string) => boolean> = {
+  aadhaar: (v) => passesVerhoeff(v.replace(/\D/g, '')),
+  'indian-mobile': (v) => !isPlaceholderNumber(v.replace(/\D/g, '').slice(-10)),
+  email: (v) => {
+    const [local, domain] = v.split('@') as [string, string];
+    return !ROLE_MAILBOX.test(local) && !PLACEHOLDER_EMAIL_DOMAIN.test(domain) && !FILE_SUFFIX.test(domain);
+  },
+};
+
+/** Scans one file for literal personal data. Snippets hide each match, as for secrets. */
+export function scanPii(text: string, file: string, rules: Rule[]): Finding[] {
+  if (LOCKFILE.test(file)) return [];
+  const name = file.slice(file.lastIndexOf('/') + 1);
+  const findings: Finding[] = [];
+  const lines = text.split(/\r?\n/);
+  for (const rule of rules) {
+    if (rule.files && !rule.files.some((s) => name.endsWith(s))) continue;
+    const re = regex(rule.pattern!, `${rule.flags ?? ''}g`);
+    const valid = rule.validate ? VALIDATORS[rule.validate] : () => true;
+    lines.forEach((line, i) => {
+      if (ignored(line, rule.id)) return;
+      const hit = [...line.matchAll(re)].some((m) => valid(m[0]));
+      if (!hit) return;
+      findings.push({
+        ruleId: rule.id,
+        title: rule.title,
+        severity: rule.severity,
+        message: rule.message ?? rule.title,
+        remediation: rule.remediation,
+        file,
+        line: i + 1,
+        snippet: line.replace(re, (m) => '*'.repeat(m.length)).trim().slice(0, 200),
+        regimes: rule.regimes ?? [],
+      });
+    });
+  }
+  return findings;
 }
 
 function mask(text: string, start: number, len: number): string {
