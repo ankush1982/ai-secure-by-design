@@ -191,6 +191,20 @@ test('every planned scaffold has the scaffolds it imports in the same plan', () 
   }
 });
 
+test('findings cite only the regimes the manifest lists', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'sbd-regimes-'));
+  writeFileSync(join(dir, 'privacy-security-manifest.yaml'), stringify({
+    schemaVersion: '0.2',
+    product: { name: 'x' },
+    regimes: [{ id: 'dpdp-2023' }],
+    dataCategories: [{ name: 'people', sensitivity: 'personal' }],
+  }));
+  const { findings } = json(['check', '--root', dir]);
+  const audit = findings.find((f) => f.ruleId === 'SBD-SCAF-007');
+  assert.deepEqual(audit.regimes, [{ regime: 'dpdp-2023', control: 'data-fiduciary-duties' }]);
+  assert.ok(findings.every((f) => f.regimes.every((g) => g.regime === 'dpdp-2023')));
+});
+
 test('explain and controls commands', () => {
   const ex = JSON.parse(sbd(['explain', 'iso-27001-2022', 'logging']).stdout);
   assert.ok(ex.checkedBy.some((r) => r.id === 'SBD-CODE-001'));

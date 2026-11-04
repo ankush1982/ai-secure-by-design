@@ -68,6 +68,28 @@ test('a failed decision records a redacted error', async () => {
   assert.equal(decisions[1].error, 'TypeError');
 });
 
+test('a call that returns nothing is a success, not a failure', async () => {
+  dl.setPreviewRedactor(al.redact);
+  assert.equal(await dl.decisionLog(ctx, async () => undefined), undefined);
+  assert.equal(decisions.length, 1);
+  assert.equal(decisions[0].outcome, 'success');
+  assert.match(decisions[0].outputHash, /^[0-9a-f]{64}$/);
+  assert.equal(decisions[0].outputPreview, 'undefined');
+});
+
+test('a sink failure after a good call is not logged as a failed inference', async () => {
+  const written = [];
+  dl.setDecisionSink({
+    write: async (r) => {
+      written.push(r);
+      throw new Error('sink down');
+    },
+  });
+  await assert.rejects(dl.decisionLog(ctx, async () => 'ok'), /sink down/);
+  dl.setDecisionSink({ write: async (r) => void decisions.push(r) });
+  assert.deepEqual(written.map((r) => r.outcome), ['success']);
+});
+
 test('phiRedact sends Error messages down the string path', () => {
   const cause = new Error('patient was seen');
   const copy = phi.phiRedact(new Error('lookup failed for a@b.co', { cause }));

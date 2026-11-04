@@ -53,9 +53,13 @@ class StderrDecisionSink implements DecisionSink {
 let sink: DecisionSink = new StderrDecisionSink();
 export function setDecisionSink(s: DecisionSink): void { sink = s; }
 
+// JSON.stringify returns undefined for undefined, functions and symbols.
+function stringify(value: unknown): string {
+  return typeof value === 'string' ? value : JSON.stringify(value) ?? String(value);
+}
+
 function hashOf(value: unknown): string {
-  const s = typeof value === 'string' ? value : JSON.stringify(value);
-  return createHash('sha256').update(s).digest('hex');
+  return createHash('sha256').update(stringify(value)).digest('hex');
 }
 
 // Off by default: pattern-based redaction misses names and clinical free text, so a preview
@@ -66,9 +70,8 @@ export function setPreviewRedactor(r: (text: string) => string): void { previewR
 
 function previewOf(value: unknown): string | undefined {
   if (!previewRedactor) return undefined;
-  const s = typeof value === 'string' ? value : JSON.stringify(value);
   // Redact before cutting: a value split at the cut no longer matches a pattern.
-  return previewRedactor(s).slice(0, 200);
+  return previewRedactor(stringify(value)).slice(0, 200);
 }
 
 /**
@@ -87,27 +90,15 @@ export async function decisionLog<T>(
   fn: () => Promise<T>,
 ): Promise<T> {
   const startedAt = Date.now();
+  const timestamp = new Date(startedAt).toISOString();
+
+  let result: T;
   try {
-    const result = await fn();
-    const record: DecisionRecord = {
-      ...ctx,
-      timestamp: new Date(startedAt).toISOString(),
-      latencyMs: Date.now() - startedAt,
-      outcome: 'success',
-      outputHash: hashOf(result),
-      outputPreview: previewOf(result),
-    };
-    await sink.write(record);
-    await auditLog.event(`ai.${ctx.systemName}.inference`, {
-      actor: ctx.actor,
-      target: ctx.dataPrincipalId,
-      attrs: { latencyMs: record.latencyMs, outputHash: record.outputHash },
-    });
-    return result;
+    result = await fn();
   } catch (e) {
     const record: DecisionRecord = {
       ...ctx,
-      timestamp: new Date(startedAt).toISOString(),
+      timestamp,
       latencyMs: Date.now() - startedAt,
       outcome: 'failure',
       // Model errors can echo the prompt, so the message is redacted here too.
@@ -123,4 +114,20 @@ export async function decisionLog<T>(
     });
     throw e;
   }
+
+  const record: DecisionRecord = {
+    ...ctx,
+    timestamp,
+    latencyMs: Date.now() - startedAt,
+    outcome: 'success',
+    outputHash: hashOf(result),
+    outputPreview: previewOf(result),
+  };
+  await sink.write(record);
+  await auditLog.event(`ai.${ctx.systemName}.inference`, {
+    actor: ctx.actor,
+    target: ctx.dataPrincipalId,
+    attrs: { latencyMs: record.latencyMs, outputHash: record.outputHash },
+  });
+  return result;
 }
