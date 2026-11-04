@@ -1,6 +1,12 @@
 ---
 description: Profile this project, ask which compliance regimes apply, classify data, and write privacy-security-manifest.yaml. Run this first.
-allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, Agent]
+allowed-tools:
+  - 'Read'
+  - 'Glob'
+  - 'Grep'
+  - 'Agent'
+  - 'Edit(./privacy-security-manifest.yaml)'
+  - 'Bash(node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" init *)'
 ---
 
 You are the entry point for the Secure & Private by Design plugin. The user has just installed the plugin and is invoking it for the first time on their project.

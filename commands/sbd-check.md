@@ -1,6 +1,8 @@
 ---
 description: Verify the privacy-security-manifest.yaml is in sync with the codebase. Reports gaps and drift.
-allowed-tools: [Bash, Read]
+allowed-tools:
+  - 'Read'
+  - 'Bash(node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" check *)'
 ---
 
 You are reporting the results of the deterministic `sbd check` engine. Read-only — propose fixes but do not apply them.

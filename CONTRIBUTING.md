@@ -22,8 +22,8 @@ npm test
 | `regimes/*.yaml` | Regime catalogues |
 | `schemas/` | JSON Schemas for the manifest, regimes and rules |
 | `templates/` | Scaffolds and instruction packs copied into user projects |
-| `instructions/agent-instructions.md` | The single source for the generated `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, Copilot and Cursor files |
-| `dist/` | Committed self-contained bundles, so installs need no build |
+| `instructions/agent-instructions.md` | The single source for the generated `.claude/CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, Copilot and Cursor files |
+| `dist/` | Committed bundles, not minified, so installs need no build |
 
 ## Before you open a PR
 

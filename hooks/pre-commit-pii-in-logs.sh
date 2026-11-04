@@ -18,10 +18,7 @@ FAILED=0
 for FILE in $STAGED; do
   [ ! -f "$FILE" ] && continue
   # Find added lines (starting with +) that contain BOTH a log call AND a PII token.
-  HITS=$(git diff --cached "$FILE" | \
-    grep -E "^\+" | \
-    grep -E "($LOG_CALLS)" | \
-    grep -E -i "($PII_TOKENS)" || true)
+  HITS=$(git diff --cached "$FILE" | grep -E "^\+" | grep -E "($LOG_CALLS)" | grep -E -i "($PII_TOKENS)" || true)
   if [ -n "$HITS" ]; then
     echo "[secure-by-design] PII-in-logs candidate in $FILE:" >&2
     echo "$HITS" | sed 's/^/  /' >&2

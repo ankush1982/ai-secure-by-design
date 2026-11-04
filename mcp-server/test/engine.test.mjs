@@ -42,31 +42,29 @@ test('R-D1: private key headers are detected by the engine', () => {
   assert.ok(JSON.parse(r.stdout).findings.some((f) => f.ruleId === 'SBD-SECRET-003'));
 });
 
-test('R-D1 / R-L1: shell PreToolUse fallback reads stdin JSON and blocks a private key', () => {
-  // Force the grep fallback by pointing CLAUDE_PLUGIN_ROOT at a directory without a build.
-  const input = JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'k.pem', content: `${FAKE.pem}\nabc\n` } });
-  const r = spawnSync('bash', [join(REPO, 'hooks/pre-write-secret-scan.sh')], {
-    input,
-    encoding: 'utf8',
-    env: { ...process.env, CLAUDE_PLUGIN_ROOT: tempFixture() },
-  });
-  if (r.stderr.includes('install jq')) return; // jq missing on this machine; engine path is tested below
-  assert.equal(r.status, 2, r.stderr);
-  assert.match(r.stderr, /PRIVATE KEY/);
-});
-
 test('Claude PreToolUse adapter (engine path) blocks Write, Edit and MultiEdit, allows clean input', () => {
   const run = (tool_input) =>
-    spawnSync('bash', [join(REPO, 'hooks/pre-write-secret-scan.sh')], {
+    spawnSync(process.execPath, [join(REPO, 'hooks/pre-write-secret-scan.mjs')], {
       input: JSON.stringify({ tool_name: 'X', tool_input }),
       encoding: 'utf8',
-      env: { ...process.env, CLAUDE_PLUGIN_ROOT: REPO },
     });
   assert.equal(run({ content: `k = "${FAKE.aws}"` }).status, 2);
   assert.equal(run({ new_string: FAKE.pem }).status, 2);
   assert.equal(run({ edits: [{ old_string: 'a', new_string: FAKE.aws }] }).status, 2);
   assert.equal(run({ content: 'const ok = process.env.KEY;' }).status, 0);
   assert.equal(spawnSync(process.execPath, [CLI, 'hook', 'claude-pretooluse'], { input: 'not json', encoding: 'utf8' }).status, 0);
+});
+
+test('Stop hook sends one JSON reminder on stdout, and nothing without a manifest or changes', () => {
+  const stop = (cwd) => spawnSync(process.execPath, [join(REPO, 'hooks/session-end-summary.mjs')], { cwd, encoding: 'utf8' });
+  const dir = tempFixture({ git: true });
+  assert.equal(stop(dir).stdout, '');
+  writeFileSync(join(dir, 'prisma/schema.prisma'), '// changed\n');
+  const r = stop(dir);
+  assert.equal(r.status, 0);
+  assert.match(JSON.parse(r.stdout).systemMessage, /schema changed but the manifest did not.*\/sbd-check/);
+  rmSync(join(dir, 'privacy-security-manifest.yaml'));
+  assert.equal(stop(dir).stdout, '');
 });
 
 test('R-D2: scaffolds count as present under snake_case or kebab-case names', () => {
@@ -175,8 +173,8 @@ test('secrets and literal personal data block every path, whatever the file', ()
   assert.equal(scan.status, 1, 'scan --stdin blocks at the default level');
   assert.ok(!scan.stdout.includes(EMAIL));
 
-  const edit = (file_path, content) => spawnSync('bash', [join(REPO, 'hooks/pre-write-secret-scan.sh')], {
-    input: JSON.stringify({ tool_input: { file_path, content } }), encoding: 'utf8', env: { ...process.env, CLAUDE_PLUGIN_ROOT: REPO },
+  const edit = (file_path, content) => spawnSync(process.execPath, [join(REPO, 'hooks/pre-write-secret-scan.mjs')], {
+    input: JSON.stringify({ tool_input: { file_path, content } }), encoding: 'utf8',
   });
   const blocked = edit('src/a.ts', `const p = "${PAN}";`);
   assert.equal(blocked.status, 2, blocked.stderr);
