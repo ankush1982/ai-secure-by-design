@@ -26,7 +26,7 @@ import {
   stagedAdded,
   toSarif,
   toText
-} from "./chunks/chunk-RCSRTFUE.mjs";
+} from "./chunks/chunk-3GMDEP4J.mjs";
 import "./chunks/chunk-6WPVGEWK.mjs";
 
 // mcp-server/src/cli.ts

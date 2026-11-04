@@ -15,7 +15,7 @@ async function main() {
     }
   });
   const root = resolve(values.root ?? process.env.SBD_ROOT ?? process.cwd());
-  const { buildServer } = await import("./chunks/server-GLUB2GHX.mjs");
+  const { buildServer } = await import("./chunks/server-SID7LKTQ.mjs");
   if (values.http) {
     const { serveHttp } = await import("./chunks/http-FW5GYHRZ.mjs");
     await serveHttp(() => buildServer(root), root, values.host, Number(values.port));
