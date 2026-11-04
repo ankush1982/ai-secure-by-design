@@ -1,6 +1,6 @@
 // Secret scanning over text. Shared by `sbd scan`, `sbd check`, the git hooks,
-// the agent hooks and the MCP tool sbd_scan_text. Literal personal data is scanned here
-// too, for `sbd check` only.
+// the agent hooks and the MCP tool sbd_scan_text. Literal personal data is scanned the same
+// way, so everything that blocks a secret also blocks it.
 import { loadRules } from './load.js';
 import type { Finding, Rule } from './types.js';
 
@@ -30,10 +30,18 @@ export function secretRules(): Rule[] {
   return loadRules().rules.filter((r) => r.kind === 'secret');
 }
 
+function piiRules(): Rule[] {
+  return loadRules().rules.filter((r) => r.kind === 'pii');
+}
+
 export const SECRET_ALLOWLIST = /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|poetry\.lock|Cargo\.lock)$|\.snap$|(^|\/)(__snapshots__|fixtures)\//;
 
-/** Scans lines for secrets. Snippets are masked so findings never re-leak the secret. */
+/** Scans lines for secrets and literal personal data. Findings never re-leak the value. */
 export function scanLines(lines: TextLine[], file?: string): Finding[] {
+  return [...scanSecrets(lines, file), ...scanPii(lines, file)];
+}
+
+function scanSecrets(lines: TextLine[], file?: string): Finding[] {
   if (file && SECRET_ALLOWLIST.test(file)) return [];
   const findings: Finding[] = [];
   for (const rule of secretRules()) {
@@ -92,20 +100,20 @@ const VALIDATORS: Record<NonNullable<Rule['validate']>, (value: string) => boole
   },
 };
 
-/** Scans one file for literal personal data. Snippets hide each match, as for secrets. */
-export function scanPii(text: string, file: string, rules: Rule[]): Finding[] {
-  if (LOCKFILE.test(file)) return [];
-  const name = file.slice(file.lastIndexOf('/') + 1);
+const STDIN = '<stdin>';
+
+function scanPii(lines: TextLine[], file?: string): Finding[] {
+  if (file && LOCKFILE.test(file)) return [];
+  const name = file?.slice(file.lastIndexOf('/') + 1);
   const findings: Finding[] = [];
-  const lines = text.split(/\r?\n/);
-  for (const rule of rules) {
-    if (rule.files && !rule.files.some((s) => name.endsWith(s))) continue;
+  for (const rule of piiRules()) {
+    // Text with no file name, such as piped input, could be any kind of file.
+    if (name && name !== STDIN && rule.files && !rule.files.some((s) => name.endsWith(s))) continue;
     const re = regex(rule.pattern!, `${rule.flags ?? ''}g`);
     const valid = rule.validate ? VALIDATORS[rule.validate] : () => true;
-    lines.forEach((line, i) => {
-      if (ignored(line, rule.id)) return;
-      const hit = [...line.matchAll(re)].some((m) => valid(m[0]));
-      if (!hit) return;
+    for (const { line, text } of lines) {
+      if (ignored(text, rule.id)) continue;
+      if (![...text.matchAll(re)].some((m) => valid(m[0]))) continue;
       findings.push({
         ruleId: rule.id,
         title: rule.title,
@@ -113,11 +121,11 @@ export function scanPii(text: string, file: string, rules: Rule[]): Finding[] {
         message: rule.message ?? rule.title,
         remediation: rule.remediation,
         file,
-        line: i + 1,
-        snippet: line.replace(re, (m) => '*'.repeat(m.length)).trim().slice(0, 200),
+        line,
+        snippet: text.replace(re, (m) => '*'.repeat(m.length)).trim().slice(0, 200),
         regimes: rule.regimes ?? [],
       });
-    });
+    }
   }
   return findings;
 }

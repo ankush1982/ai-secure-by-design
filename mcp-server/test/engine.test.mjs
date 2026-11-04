@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
@@ -167,6 +167,35 @@ test('literal personal data is found, and the report never repeats it', () => {
     for (const value of [AADHAAR[0], PAN, MOBILE, EMAIL]) assert.ok(!f.snippet.includes(value), f.snippet);
   }
   assert.ok(found.every((f) => f.regimes.every((r) => r.regime === 'iso-27001-2022')), 'cites only the picked regime');
+});
+
+test('secrets and literal personal data block every path, whatever the file', () => {
+  const value = `const e = "${EMAIL}";`;
+  const scan = spawnSync(process.execPath, [CLI, 'scan', '--stdin'], { input: value, encoding: 'utf8' });
+  assert.equal(scan.status, 1, 'scan --stdin blocks at the default level');
+  assert.ok(!scan.stdout.includes(EMAIL));
+
+  const edit = (file_path, content) => spawnSync('bash', [join(REPO, 'hooks/pre-write-secret-scan.sh')], {
+    input: JSON.stringify({ tool_input: { file_path, content } }), encoding: 'utf8', env: { ...process.env, CLAUDE_PLUGIN_ROOT: REPO },
+  });
+  const blocked = edit('src/a.ts', `const p = "${PAN}";`);
+  assert.equal(blocked.status, 2, blocked.stderr);
+  assert.match(blocked.stderr, /SBD-PII-002/);
+  assert.ok(!blocked.stderr.includes(PAN));
+  assert.equal(edit('docs/a.md', `Contact ${EMAIL}`).status, 0, 'emails in prose are not scanned');
+
+  const dir = tempFixture({ git: true });
+  writeFileSync(join(dir, 'src/seed.ts'), `const m = "+91 ${MOBILE}";\n`);
+  execFileSync('git', ['add', '.'], { cwd: dir });
+  assert.equal(sbd(['scan', '--staged', '--root', dir]).code, 1, 'staged scan blocks');
+  rmSync(join(dir, 'privacy-security-manifest.yaml'));
+  assert.equal(sbd(['scan', '--staged', '--root', dir]).code, 1, 'and needs no manifest');
+
+  for (const file of ['rules/pii.yaml', 'rules/secrets.yaml']) {
+    for (const rule of parse(readFileSync(join(REPO, file), 'utf8')).rules) {
+      assert.ok(['CRITICAL', 'HIGH'].includes(rule.severity), `${rule.id} must block at --fail-on high`);
+    }
+  }
 });
 
 test('literal personal data checks skip look-alikes', () => {

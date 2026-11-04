@@ -163,9 +163,9 @@ function claudePreToolUse(): never {
   const findings = texts.flatMap((t) => scanText(t, file));
   if (findings.length === 0) process.exit(0);
   process.stderr.write(
-    `[secure-by-design] BLOCKED: hardcoded secret in proposed edit.\n` +
+    `[secure-by-design] BLOCKED: hardcoded secret or personal data in proposed edit.\n` +
       findings.map((f) => `  - ${f.ruleId} ${f.title} (line ${f.line})`).join('\n') +
-      `\nMove secrets to environment variables or a secret manager. NIST SSDF PS.1.1.\n`,
+      `\nMove secrets to environment variables or a secret manager, and use generated data in place of personal data. NIST SSDF PS.1.1.\n`,
   );
   process.exit(2); // exit 2 blocks the tool call; stderr is the reason shown to the agent
 }

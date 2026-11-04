@@ -9,7 +9,7 @@ import { loadRules } from './load.js';
 import { classifiedFields, DEFAULT_MANIFEST, holds, loadManifest, normaliseField, personalFields } from './manifest.js';
 import { confine, toPosix } from './paths.js';
 import { isMcpConfig, scanMcpConfig } from './mcp-config.js';
-import { ignored, regex, scanPii, scanText } from './scan.js';
+import { ignored, regex, scanText } from './scan.js';
 import { detectStack } from './stack.js';
 import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Condition, type Finding, type Manifest, type Rule, type Severity } from './types.js';
 import { VERSION } from './version.js';
@@ -75,13 +75,12 @@ function scanFiles(root: string, files: string[], m: Manifest): Finding[] {
   const { rules } = loadRules();
   const codeRules = rules.filter((r) => r.kind === 'code' && applicable(r, m));
   const mcpRules = rules.filter((r) => r.kind === 'mcp-config' && applicable(r, m));
-  const piiRules = rules.filter((r) => r.kind === 'pii' && applicable(r, m));
   const fields = personalFields(m);
   const out: Finding[] = [];
   for (const file of files) {
     const text = readText(join(root, file));
     if (text === undefined) continue;
-    out.push(...scanText(text, file), ...scanPii(text, file, piiRules));
+    out.push(...scanText(text, file));
     if (mcpRules.length && isMcpConfig(file, text)) out.push(...scanMcpConfig(text, file, mcpRules));
     const name = file.slice(file.lastIndexOf('/') + 1);
     const lines = text.split(/\r?\n/);

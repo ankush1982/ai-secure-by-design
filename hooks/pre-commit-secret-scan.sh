@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # secure-by-design pre-commit hook (installed into USER's repo by /sbd-deploy).
-# Scans the staged diff for secrets before allowing commit.
+# Scans the staged diff for secrets and literal personal data before allowing commit.
 # Maps to: NIST SSDF PS.1.1.
 
 set -uo pipefail
 
 # Preferred path: the sbd engine, so git hooks, agent hooks and CI share one rule set.
+# The grep fallback below covers secrets only.
 if command -v sbd >/dev/null 2>&1; then
   exec sbd scan --staged --fail-on high
 fi
@@ -43,12 +44,7 @@ if [ "$FAILED" = "1" ]; then
   cat <<'EOF' >&2
 
 Commit blocked. Move secrets to env vars or a secret manager.
-Override (NOT recommended): SBD_ALLOW_SECRETS=1 git commit ...
 EOF
-  if [ "${SBD_ALLOW_SECRETS:-0}" = "1" ]; then
-    echo "[secure-by-design] override accepted via SBD_ALLOW_SECRETS=1." >&2
-    exit 0
-  fi
   exit 1
 fi
 

@@ -87,7 +87,16 @@ This report lists control gaps. It is not a compliance determination.
 | **PII** | Aadhaar numbers (with checksum), PAN, Indian mobile numbers and email addresses written into source and data files, with the value hidden in reports. Unclassified personal-looking schema fields. Classified fields, and whole request or user objects, passed to log calls | Names and postal addresses. Personal data in production databases or logs |
 | **PHI** | Clinical and health-identifier schema fields such as `diagnosis`, `mrn`, `bloodGroup`, `allergies` and `abhaNumber`, plus any field you classify | Clinical free text in code, such as a sample patient note. Use [`phi_redaction`](#what-gets-deployed) to redact it at runtime |
 
-Literal PII and whole-object logging rules run in `sbd check` and the `sbd-check` pre-commit hook. `sbd scan` and the editor hook remain secrets-only. Aadhaar and PAN findings are `HIGH`; mobile numbers and emails are `MEDIUM`, so they appear in reports without failing the build at the default `--fail-on high`. Placeholder values such as `@example.com` addresses are skipped. Add `sbd: ignore SBD-PII-001` to a line to accept reviewed sample data, and record why.
+Any secret or literal PII blocks. Every rule above is `HIGH` or `CRITICAL`, so each one fails at the default `--fail-on high`:
+
+| Where | Blocks on |
+|---|---|
+| Claude Code editor hook | Secrets and literal PII in a proposed edit, before it is written |
+| `sbd-secrets` pre-commit hook (`sbd scan --staged`) | Secrets and literal PII on staged lines, with or without a manifest |
+| `sbd-check` pre-commit hook (`sbd check --staged`) | The above, plus schema fields and log calls on staged lines. Needs a manifest |
+| GitHub Action (`sbd check`) | All of the above, across the repository or a diff |
+
+Placeholder values such as `@example.com` addresses are skipped, and the secret rules skip lockfiles, snapshots and `fixtures/` folders. To accept reviewed sample data, add `sbd: ignore SBD-PII-001` to the line and record why; it shows up in the diff for review, and secret rules cannot be ignored this way. Setting `--fail-on critical` or `none`, or running `git commit --no-verify`, turns local blocking off, so keep the GitHub Action as a required check. Without Node.js, the fallback hook scripts cover secrets only.
 
 ## How it works (v0.2)
 
@@ -136,7 +145,7 @@ The draft never decides for you. It leaves `dataCategories` empty and lists the 
 | `sbd init --non-interactive [--regime ID]... [--stack STACK] [--dry-run]` | Detects the stack and writes a draft `privacy-security-manifest.yaml` with `TODO(user):` markers. Never classifies a field, lists only the regimes you pass, and never overwrites an existing manifest. |
 | `sbd deploy [--stack STACK] [--dry-run] [--force]` | Copies the scaffolds the manifest requires, each with its template checksum in the generator header. Safe to re-run: it updates scaffolds you have not touched and leaves edited or user-authored files alone unless you pass `--force`. Exits `1` if a required scaffold could not be deployed, for example because the stack has no template. |
 | `sbd check [--diff RANGE \| --staged] [--format text\|json\|sarif] [--output FILE] [--fail-on LEVEL]` | All checks: manifest schema and semantics, secrets, literal personal data, unclassified personal-looking fields, required scaffolds, audit-log coverage, personal data in logs, AI decision logging |
-| `sbd scan --staged \| --stdin \| FILE...` | Secret scan only (used by hooks) |
+| `sbd scan --staged \| --stdin \| FILE...` | Scans for secrets and literal personal data, with no manifest needed (used by hooks) |
 | `sbd validate` | Manifest only |
 | `sbd plan [--stack STACK]` | Which scaffolds the manifest needs, where they go, and whether they exist. Writes nothing. The stack comes from `--stack`, then `product.stack`, then detection. |
 | `sbd controls [--regime ID]`, `sbd explain REGIME CONTROL` | Query the regime catalogues |
@@ -238,7 +247,7 @@ The instruction files are generated from `instructions/agent-instructions.md` by
 - 5 skills that fire as you write code (privacy-by-design, secure-by-design, dpdp-compliance, healthcare-ai, sbd-project-rules)
 - 3 subagents (profiler, scaffold-generator, regime-reviewer)
 - 5 slash commands (`/sbd-init`, `/sbd-deploy`, `/sbd-check`, `/sbd-add`, `/sbd-evidence`)
-- Git hooks via the pre-commit framework: secret scan, staged-line `sbd check`, provenance-tag commit-msg gate
+- Git hooks via the pre-commit framework: secret and personal data scan, staged-line `sbd check`, provenance-tag commit-msg gate
 - MCP server with read-only tools any MCP client can call
 - GitHub Action with SARIF upload
 

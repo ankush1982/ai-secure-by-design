@@ -1,5 +1,6 @@
-# Literal personal data in source and data files. `sbd check` reports these; `sbd scan`
-# stays secrets-only. Snippets hide the matched value, so a report never repeats it.
+# Literal personal data in source and data files. These run wherever secrets are scanned:
+# `sbd check`, `sbd scan`, the git hooks, the editor hook and the MCP tools. Every rule is
+# HIGH so the default --fail-on blocks it. Snippets hide the value, so a report never repeats it.
 #   validate — a named check in mcp-server/src/core/scan.ts that each match must also pass
 #
 # These rules need a pattern to match, so they do not find names, addresses or clinical
@@ -34,7 +35,7 @@ rules:
   - id: SBD-PII-003
     title: Indian mobile number in source
     kind: pii
-    severity: MEDIUM
+    severity: HIGH
     files: *data
     pattern: '(?<![\w+])\+91[ -]?[6-9]\d{4}[ -]?\d{5}\b|(?<=["''`])[6-9]\d{9}(?=["''`])'
     validate: indian-mobile
@@ -45,7 +46,7 @@ rules:
   - id: SBD-PII-004
     title: Email address in source
     kind: pii
-    severity: MEDIUM
+    severity: HIGH
     files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".rb", ".sql", ".csv"]
     pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b'
     validate: email
