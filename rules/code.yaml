@@ -45,6 +45,24 @@ rules:
     message: Log call references a field the manifest classifies as personal or sensitive.
     remediation: Route the value through the redacting logger in src/security/audit_log.
 
+  - id: SBD-CODE-004
+    title: Whole request or user object written to logs
+    kind: code
+    severity: HIGH
+    when: ["personalData"]
+    files: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".rb"]
+    pattern: '(console\.(log|info|warn|error|debug)|logger\.(info|warn|error|debug|log)|logging\.(info|warning|error|debug)|\bprint\(|println!?\(|fmt\.Print)'
+    mustAlsoMatch:
+      pattern: '(?:[(,:]\s*|\{\s*)(?:JSON\.stringify\(|await\s+|str\(|repr\()?(?:req|request|res|response|user|users|patient|patients|customer|customers|profile|account)(?:\.(?:body|headers|query|params|cookies|json|form|data|dict|model_dump)(?:\(\))?)?\s*(?:[,)}]|$)'
+    unlessNearby:
+      pattern: '\b(redact|phiRedact|phi_redact|redactErr|redact_err)\b'
+    regimes:
+      - { regime: ai-security-wiki, control: AI-CTRL-017 }
+      - { regime: iso-27001-2022, control: data-masking }
+      - { regime: dpdp-2023, control: data-fiduciary-duties }
+    message: Log call writes a whole request, response or user object, which can carry personal data.
+    remediation: Log only the fields you need, or pass the object through redact() from src/security/audit_log.
+
   - id: SBD-CODE-003
     title: AI inference without decision log
     kind: code

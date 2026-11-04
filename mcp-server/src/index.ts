@@ -100,8 +100,8 @@ export function buildServer(root: string): McpServer {
   server.registerTool(
     'sbd_scan_text',
     {
-      title: 'Scan text for secrets',
-      description: 'Scan proposed file content for hardcoded secrets before writing it. Snippets in findings are masked.',
+      title: 'Scan text for secrets and personal data',
+      description: 'Scan proposed file content for hardcoded secrets and literal personal data before writing it. Snippets in findings are masked.',
       inputSchema: {
         text: z.string().max(2_000_000),
         filename: z.string().optional().describe('Used for allow-listing lockfiles and fixtures, and in findings.'),

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # secure-by-design PreToolUse hook (Claude Code adapter).
-# Blocks Write/Edit/MultiEdit calls that introduce hardcoded secrets.
+# Blocks Write/Edit/MultiEdit calls that introduce hardcoded secrets or literal personal data.
 # Maps to: NIST SSDF PS.1.1, ISO 27001 A.5.34 / A.8.24.
 #
 # Claude Code sends the hook input as JSON on stdin; the tool arguments are under
 # .tool_input. Exit code 2 blocks the call and stderr is shown as the reason.
 #
 # Preferred path: the sbd engine (same rules as git hooks and CI). Fallback: the
-# grep patterns below, for machines without Node.js.
+# grep patterns below, for machines without Node.js. They cover secrets only.
 
 set -uo pipefail
 

@@ -27,6 +27,7 @@
 - [x] Plugin passes `claude plugin validate`; project rules ship as a skill
 - [x] Scaffolds type-check in `npm test`, and `decision_log` no longer needs `phi_redaction`
 - [x] AI Security Wiki integration: opt-in `ai-security-wiki` regime, `AIW-*` rules, MCP configuration checks, `sbd evidence`, `/sbd-evidence`, `sbd: ignore`
+- [x] Literal PII rules (`SBD-PII-*`), whole-object logging (`SBD-CODE-004`) and health identifiers in schema fields
 - [ ] Cross-platform evaluation harness (same prompts through each adapter, diff the results)
 - [ ] Signed releases, SBOM, permissions statement
 - [x] `init --non-interactive` and `deploy` in the CLI, with read-only plans through MCP (`sbd_plan_init`, `sbd_plan_deploy`)

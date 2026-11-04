@@ -53,7 +53,7 @@
       "properties": {
         "id": { "$ref": "#/definitions/ruleId" },
         "title": { "type": "string" },
-        "kind": { "type": "string", "enum": ["secret", "code", "scaffold",
+        "kind": { "type": "string", "enum": ["secret", "code", "pii", "scaffold",
             "mcp-config"] },
         "severity": { "$ref": "#/definitions/severity" },
         "severityWhen": {
@@ -79,6 +79,8 @@
               "description": "A file extension such as .py, or an exact name such as Dockerfile." } },
         "pattern": { "type": "string" },
         "flags": { "type": "string", "pattern": "^[imsu]*$" },
+        "validate": { "type": "string", "enum": ["aadhaar", "indian-mobile", "email"],
+          "description": "For pii rules: a named check each match must also pass." },
         "mustAlsoMatch": { "$ref": "#/definitions/regex" },
         "unlessNearby": { "$ref": "#/definitions/regex" },
         "dir": { "type": "string" },
@@ -90,7 +92,7 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "kind": { "enum": ["secret", "code"] } } },
+          "if": { "properties": { "kind": { "enum": ["secret", "code", "pii"] } } },
           "then": { "required": ["pattern", "message"] }
         },
         {

@@ -41,7 +41,7 @@ export interface RegexSpec {
 export interface Rule {
   id: string;
   title: string;
-  kind: 'secret' | 'code' | 'scaffold' | 'mcp-config';
+  kind: 'secret' | 'code' | 'pii' | 'scaffold' | 'mcp-config';
   severity: Severity;
   severityWhen?: Array<{ condition: Condition; severity: Severity }>;
   when?: Condition[];
@@ -50,6 +50,8 @@ export interface Rule {
   files?: string[];
   pattern?: string;
   flags?: string;
+  /** For `pii` rules: a named check each match must also pass. */
+  validate?: 'aadhaar' | 'indian-mobile' | 'email';
   mustAlsoMatch?: RegexSpec;
   unlessNearby?: RegexSpec;
   dir?: string;
