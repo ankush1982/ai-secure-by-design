@@ -1,8 +1,65 @@
-# Secure & Private by Design
+<p align="center">
+  <a href="https://github.com/ankush1982/ai-secure-by-design">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
+      <img alt="Secure &amp; Private by Design" src=".github/assets/logo-light.svg" width="440">
+    </picture>
+  </a>
+</p>
 
-A platform-neutral engine, with a Claude Code plugin and adapters for other AI tools, that bundles **dev-loop security controls** (skills, hooks, slash commands, subagents, MCP server) **and product-code scaffolds** (consent management, DSR handlers, audit logging, PHI redaction, AI decision logs, RBAC, etc.) into a single installable unit.
+<p align="center">
+  <strong>The same security and privacy checks, whichever AI wrote the code.</strong><br>
+  A deterministic engine, plus editable scaffolds for consent, audit logs, data rights and AI oversight.
+</p>
 
-Install once. Tell the plugin what your product does and which regulatory regime(s) you target. It profiles your codebase, asks you to classify your data, and then deploys both the dev-environment controls AND the product-code scaffolds tailored to your stack and regime.
+<p align="center">
+  <a href="https://github.com/ankush1982/ai-secure-by-design/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ankush1982/ai-secure-by-design/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="./LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-0EA58F"></a>
+  <img alt="Node.js 20+" src="https://img.shields.io/badge/node-20%2B-0EA58F">
+  <img alt="Status: pre-release" src="https://img.shields.io/badge/status-pre--release-F7A600">
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#what-it-covers">What it covers</a> ·
+  <a href="#how-it-works-v02">How it works</a> ·
+  <a href="#platform-support">Platforms</a> ·
+  <a href="#what-this-is-not">What this is not</a> ·
+  <a href="./ROADMAP.md">Roadmap</a> ·
+  <a href="./CONTRIBUTING.md">Contributing</a>
+</p>
+
+AI coding tools write code quickly and forget rules quietly. Secure & Private by Design moves the rules out of the prompt and into an engine that gives the same answer every time, then runs that engine in your editor, your git hooks and your CI.
+
+Tell it what your product does and which regimes you target. It profiles your codebase, asks you to classify your data, and deploys dev-loop controls (hooks, skills, slash commands, subagents, an MCP server) and product-code scaffolds tailored to your stack.
+
+## Why use it
+
+- **Checks are code, not prompts.** Claude, GPT, Gemini and a human running the CLI all see the same findings, each with a stable rule ID, a severity and a location.
+- **Your manifest is the source of truth.** One YAML file records your data categories, regimes, retention and consent. Only the regimes you list are enforced, and the tool never classifies a field for you.
+- **You own the scaffolds.** Consent, data rights, audit logging, RBAC, PHI redaction and AI decision logs land in your repo as ordinary code you can edit or delete.
+- **Everything runs locally.** No telemetry and no hosted service.
+
+## See it run
+
+`sbd check` on the sample app in `mcp-server/test/fixtures/clinic-app` (trimmed):
+
+```text
+Manifest: privacy-security-manifest.yaml (schemaVersion 0.2)
+Regimes:  nist-ssdf-1.1, iso-27001-2022, dpdp-2023
+
+  1. [CRITICAL] SBD-SCAF-001 Missing src/privacy/consent.<ext> (Consent scaffold).
+       → Copy templates/<stack>/consent.ts to src/privacy/consent.ts, or run `sbd deploy`.
+ 10. [HIGH] SBD-FIELD-001 prisma/schema.prisma:5 — Field dateOfBirth looks personal or sensitive but no dataCategory lists it.
+ 12. [HIGH] SBD-CODE-002 src/routes/patients.ts:19 — Log call references a field the manifest classifies as personal or sensitive.
+       console.log('loaded patient', patient.email);
+       → Route the value through the redacting logger in src/security/audit_log.
+ 13. [HIGH] SBD-CODE-003 src/services/triage.ts:6 — Model inference call with no decision-log call within 15 lines.
+ 16. [MEDIUM] SBD-CODE-001 src/routes/patients.ts:12 — Handler mutates data without an auditLog() call within 40 lines.
+
+17 finding(s): 2 critical, 11 high, 3 medium, 1 low, 0 info.
+This report lists control gaps. It is not a compliance determination.
+```
 
 ## What it covers
 
@@ -206,4 +263,8 @@ Apache-2.0, see [LICENSE](./LICENSE), except `regimes/ai-security-wiki.yaml` and
 
 ## Status
 
-v0.2 in development — pre-release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation. Issues and PRs welcome.
+v0.2 in development — pre-release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation. See the [roadmap](./ROADMAP.md).
+
+## Contributing and security
+
+Issues and PRs are welcome: start with [CONTRIBUTING.md](./CONTRIBUTING.md). To report a vulnerability, follow [SECURITY.md](./SECURITY.md) rather than opening a public issue.

@@ -102,7 +102,7 @@ test('deployed scaffolds trip no audit-log rule', () => {
 });
 
 test('no TypeScript scaffold makes a compliance claim', () => {
-  for (const f of readdirSync(TEMPLATES)) {
+  for (const f of readdirSync(TEMPLATES).filter((n) => n.endsWith('.ts'))) {
     assert.doesNotMatch(readFileSync(join(TEMPLATES, f), 'utf8'), /\b(compliant|satisfies|guarantees)\b/i, f);
   }
 });
