@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-write-secret-scan.sh\""
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/pre-write-secret-scan.mjs"]
           }
         ]
       }
@@ -16,7 +17,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-end-summary.sh\""
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/session-end-summary.mjs"]
           }
         ]
       }

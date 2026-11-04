@@ -1,6 +1,13 @@
 ---
 description: Deploy product-code scaffolds and dev-loop hooks into this repo, driven by privacy-security-manifest.yaml. Idempotent — safe to re-run.
-allowed-tools: [Read, Write, Edit, Glob, Bash, Agent]
+allowed-tools:
+  - 'Read'
+  - 'Glob'
+  - 'Agent'
+  - 'Edit(./.github/PULL_REQUEST_TEMPLATE.md)'
+  - 'Edit(./.github/workflows/secure-by-design.yml)'
+  - 'Edit(./.husky/**)'
+  - 'Bash(node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" deploy *)'
 ---
 
 You are deploying the Secure & Private by Design scaffolds. The user has already run `/sbd-init` and there should be a `privacy-security-manifest.yaml` at the project root.

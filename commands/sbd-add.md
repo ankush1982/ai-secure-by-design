@@ -1,6 +1,14 @@
 ---
 description: Add a single control after initial deploy. Usage. /sbd-add <control-name> — e.g. /sbd-add children_gate
-allowed-tools: [Read, Write, Edit, Glob, Bash, Agent]
+allowed-tools:
+  - 'Read'
+  - 'Glob'
+  - 'Agent'
+  - 'Edit(./src/privacy/**)'
+  - 'Edit(./src/security/**)'
+  - 'Edit(./src/ai/**)'
+  - 'Edit(./.github/PULL_REQUEST_TEMPLATE.md)'
+  - 'Bash(node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" deploy *)'
 ---
 
 You are adding a single control on top of an already-initialized project. The user has already run `/sbd-init` and `/sbd-deploy` at least once.

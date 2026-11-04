@@ -13,8 +13,9 @@ const NOTICE = '<!-- GENERATED from instructions/agent-instructions.md by script
 // Where each platform reads project instructions. These are documented conventions as
 // far as we know; check each tool's current docs (see README "Platform support").
 const TARGETS = [
-  { platform: 'claude', path: 'CLAUDE.md' },
-  // A plugin's root CLAUDE.md is not loaded in the user's project; a skill is.
+  // For work on this repository. The plugin validator warns about a CLAUDE.md at the root,
+  // and a plugin's CLAUDE.md is not loaded in the user's project anyway; the skill below is.
+  { platform: 'claude', path: '.claude/CLAUDE.md' },
   {
     platform: 'claude',
     path: 'skills/sbd-project-rules/SKILL.md',

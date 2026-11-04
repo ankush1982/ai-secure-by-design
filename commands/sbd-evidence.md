@@ -1,6 +1,9 @@
 ---
 description: Build an audit evidence plan from the AI Security Wiki controls and this project's check results.
-allowed-tools: [Read, Glob, Bash]
+allowed-tools:
+  - 'Read'
+  - 'Glob'
+  - 'Bash(node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" evidence *)'
 ---
 
 You are preparing an audit evidence plan. Read-only: do not change code or the manifest.

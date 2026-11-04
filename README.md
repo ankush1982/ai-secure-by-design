@@ -200,7 +200,7 @@ node /path/to/ai-secure-by-design/dist/sbd-mcp.mjs --root /path/to/your/repo --h
 /plugin install secure-by-design@ai-secure-by-design
 ```
 
-The engine ships prebuilt as two self-contained bundles, `dist/sbd.mjs` (CLI) and `dist/sbd-mcp.mjs` (MCP server), so it needs only Node.js 20+ with no `npm install`. If Node is missing, the PreToolUse secret hook falls back to a `grep -E` + `jq` scan. The bundles are rebuilt with `npm run build`, and `npm test` fails if they no longer match the source in `mcp-server/src/`.
+The engine ships prebuilt in `dist/`: `dist/sbd.mjs` (CLI), `dist/sbd-mcp.mjs` (MCP server) and their shared code in `dist/chunks/`, so it needs only Node.js 20+ with no `npm install`. If Node is missing, the PreToolUse secret hook falls back to a `grep -E` + `jq` scan. The bundles are rebuilt with `npm run build`, and `npm test` fails if they no longer match the source in `mcp-server/src/`.
 
 Slash commands: `/sbd-init`, `/sbd-deploy`, `/sbd-check` (now reports the engine's results instead of doing the checks in prose), `/sbd-add`, `/sbd-evidence`.
 
@@ -232,7 +232,7 @@ The data is generated from a wiki checkout with `npm run sync:wiki -- ../AI-Secu
 
 | Platform | Integration | Instruction file (generated) |
 |---|---|---|
-| Claude Code | Plugin (MCP server + hooks + commands), or MCP server alone | `CLAUDE.md` |
+| Claude Code | Plugin (MCP server + hooks + commands), or MCP server alone | `skills/sbd-project-rules/SKILL.md` |
 | OpenAI Codex / agents | MCP server (stdio) | `templates/agent-instructions/AGENTS.md` |
 | ChatGPT | Remote MCP server (HTTP mode) as a connector, where the plan allows it | — |
 | Gemini CLI | MCP server in its settings | `templates/agent-instructions/GEMINI.md` (or point it at `AGENTS.md`) |

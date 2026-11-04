@@ -14,10 +14,11 @@ fi
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 [ -z "$STAGED" ] && exit 0
 
+QUOTE="[\"']"
 PATTERNS=(
   'AKIA[0-9A-Z]{16}'
   '-----BEGIN (RSA |EC |OPENSSH |DSA |PGP |ENCRYPTED )?PRIVATE KEY'
-  '([Aa][Pp][Ii][_-]?[Kk][Ee][Yy]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Tt][Oo][Kk][Ee][Nn])[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9+/=_-]{24,}["'"'"']'
+  '([Aa][Pp][Ii][_-]?[Kk][Ee][Yy]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Tt][Oo][Kk][Ee][Nn])[[:space:]]*[:=][[:space:]]*'"$QUOTE"'[A-Za-z0-9+/=_-]{24,}'"$QUOTE"
   'sk-[A-Za-z0-9]{32,}'
   'xox[baprs]-[A-Za-z0-9-]{10,}'
   'ghp_[A-Za-z0-9]{36}'
@@ -41,10 +42,7 @@ for FILE in $STAGED; do
 done
 
 if [ "$FAILED" = "1" ]; then
-  cat <<'EOF' >&2
-
-Commit blocked. Move secrets to env vars or a secret manager.
-EOF
+  echo "Commit blocked. Move secrets to env vars or a secret manager." >&2
   exit 1
 fi
 
