@@ -16,12 +16,13 @@
   <a href="https://github.com/ankush1982/ai-secure-by-design/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ankush1982/ai-secure-by-design/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="./LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-0EA58F"></a>
   <img alt="Node.js 20+" src="https://img.shields.io/badge/node-20%2B-0EA58F">
-  <img alt="Status: pre-release" src="https://img.shields.io/badge/status-pre--release-F7A600">
+  <a href="https://github.com/ankush1982/ai-secure-by-design/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ankush1982/ai-secure-by-design?color=F7A600"></a>
 </p>
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#what-it-covers">What it covers</a> ·
+  <a href="#what-it-detects">What it detects</a> ·
   <a href="#how-it-works-v02">How it works</a> ·
   <a href="#platform-support">Platforms</a> ·
   <a href="#what-this-is-not">What this is not</a> ·
@@ -35,6 +36,7 @@ Tell it what your product does and which regimes you target. It profiles your co
 
 ## Why use it
 
+- **Secrets and personal data get blocked.** Hardcoded keys, Aadhaar numbers, PAN, mobile numbers and emails are stopped in Claude Code, at commit and in CI, and reports never repeat the value.
 - **Checks are code, not prompts.** Claude, GPT, Gemini and a human running the CLI all see the same findings, each with a stable rule ID, a severity and a location.
 - **Your manifest is the source of truth.** One YAML file records your data categories, regimes, retention and consent. Only the regimes you list are enforced, and the tool never classifies a field for you.
 - **You own the scaffolds.** Consent, data rights, audit logging, RBAC, PHI redaction and AI decision logs land in your repo as ordinary code you can edit or delete.
@@ -49,7 +51,7 @@ Manifest: privacy-security-manifest.yaml (schemaVersion 0.2)
 Regimes:  nist-ssdf-1.1, iso-27001-2022, dpdp-2023
 
   1. [CRITICAL] SBD-SCAF-001 Missing src/privacy/consent.<ext> (Consent scaffold).
-       → Copy templates/<stack>/consent.ts to src/privacy/consent.ts, or run `sbd deploy`.
+       → Copy templates/typescript-express/consent.ts to src/privacy/consent.ts, or run `sbd deploy`.
  10. [HIGH] SBD-FIELD-001 prisma/schema.prisma:5 — Field dateOfBirth looks personal or sensitive but no dataCategory lists it.
  12. [HIGH] SBD-CODE-002 src/routes/patients.ts:19 — Log call references a field the manifest classifies as personal or sensitive.
        console.log('loaded patient', patient.email);
@@ -126,7 +128,7 @@ cd /path/to/your/repo
 node /path/to/ai-secure-by-design/dist/sbd.mjs check
 ```
 
-Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-secure-by-design#<tag-or-sha>`) and run `npx sbd check`. It is not published to the npm registry yet.
+Or add it to a Node project as a dev dependency (`npm i -D github:ankush1982/ai-secure-by-design#v0.2.0`) and run `npx sbd check`. It is not published to the npm registry yet.
 
 To set up a project without an AI assistant, choose your regimes and run:
 
@@ -149,13 +151,14 @@ The draft never decides for you. It leaves `dataCategories` empty and lists the 
 | `sbd validate` | Manifest only |
 | `sbd plan [--stack STACK]` | Which scaffolds the manifest needs, where they go, and whether they exist. Writes nothing. The stack comes from `--stack`, then `product.stack`, then detection. |
 | `sbd controls [--regime ID]`, `sbd explain REGIME CONTROL` | Query the regime catalogues |
+| `sbd evidence [--tier baseline\|advanced] [--format text\|json\|markdown\|csv] [--output FILE]` | Plans audit evidence, showing each control as `gap`, `checked` or `manual` |
 | `sbd provenance MSGFILE` | Commit-message provenance check |
 
 Exit codes: `0` no findings at or above `--fail-on` (default `high`), `1` findings, `2` usage or runtime error.
 
 With `--staged` or `--diff`, `sbd check` gates the change: it reports findings on added lines, and manifest findings only if the change touches the manifest. Project-wide gaps such as missing scaffolds appear in a full `sbd check`, which the CI template runs on pushes to the main branch.
 
-Each finding has a stable rule ID (`SBD-SECRET-001`, `SBD-CODE-002`, `SBD-SCAF-004`, …), a severity, a location and the regime controls it maps to. Rules live in `rules/*.yaml`; add a rule there and every adapter picks it up.
+Each finding has a stable rule ID (`SBD-SECRET-001`, `SBD-PII-001`, `SBD-CODE-002`, `SBD-SCAF-004`, …), a severity, a location and the regime controls it maps to. Rules live in `rules/*.yaml`; add a rule there and every adapter picks it up.
 
 ### Git hooks (any editor, any AI)
 
@@ -164,7 +167,7 @@ Add to your repo's `.pre-commit-config.yaml` ([pre-commit](https://pre-commit.co
 ```yaml
 repos:
   - repo: https://github.com/ankush1982/ai-secure-by-design
-    rev: <tag or commit SHA>   # pin it
+    rev: v0.2.0   # pin it
     hooks:
       - id: sbd-secrets
       - id: sbd-check
@@ -284,7 +287,7 @@ Apache-2.0, see [LICENSE](./LICENSE), except `regimes/ai-security-wiki.yaml` and
 
 ## Status
 
-v0.2 in development — pre-release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation. See the [roadmap](./ROADMAP.md).
+v0.2.0 is the current release. `npm test` runs the engine, hooks and MCP server against fixture projects with known gaps (`mcp-server/test/`), and type-checks the scaffolds. It needs Python 3.10+ (set `SBD_PYTHON` to choose one) and installs its pinned Python tools into `build/`. Pending real-world validation, and the DPDP scaffolds have not had a legal review. See the [roadmap](./ROADMAP.md).
 
 ## Contributing and security
 

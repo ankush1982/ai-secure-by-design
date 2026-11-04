@@ -1,6 +1,6 @@
 {
   "name": "ai-secure-by-design",
-  "version": "0.2.0-dev",
+  "version": "0.2.0",
   "description": "Deterministic secure-by-design / privacy-by-design checks with CLI, SARIF output, MCP server and git/CI adapters.",
   "license": "(Apache-2.0 AND CC-BY-SA-4.0)",
   "type": "module",

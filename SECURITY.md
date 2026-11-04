@@ -4,11 +4,11 @@
 
 Please do not open a public issue. Report it privately through [GitHub's vulnerability reporting form](https://github.com/ankush1982/ai-secure-by-design/security/advisories/new).
 
-Include the affected version or commit, the steps to reproduce, and the impact you expect. This project is pre-release, so there is no fixed response time yet.
+Include the affected version or commit, the steps to reproduce, and the impact you expect. There is no fixed response time yet.
 
 ## Supported versions
 
-Only the latest commit on `main` gets fixes until the first tagged release.
+Only the latest release gets fixes.
 
 ## In scope
 
