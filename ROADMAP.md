@@ -33,7 +33,7 @@
 
 ## v0.2.x — first feedback round
 
-- [ ] Python + FastAPI scaffold templates (mirror of TS set)
+- [x] Python + FastAPI scaffold templates (mirror of TS set)
 - [ ] TypeScript + Next.js scaffold templates (app-router-aware)
 - [ ] Indian data-privacy lawyer review of the DPDP scaffolds and disclaimers
 - [ ] Three friends test on real Indian-product codebases; capture friction in issues

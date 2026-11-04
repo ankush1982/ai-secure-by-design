@@ -1,7 +1,7 @@
 // Regime catalogue queries and scaffold planning (read-only).
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { scaffoldCandidates } from './check.js';
+import { DEFAULT_STACK, scaffoldCandidates, scaffoldFiles } from './check.js';
 import { assetPath } from './assets.js';
 import { loadRegimes, loadRules } from './load.js';
 import { holds } from './manifest.js';
@@ -42,17 +42,18 @@ export function resolveStack(root: string, m: Manifest, stack?: string): string 
 
 /** Which scaffolds the manifest requires and where they stand. Writes nothing. */
 export function planScaffold(root: string, m: Manifest, stackArg?: string): ScaffoldPlanItem[] {
-  const stack = resolveStack(root, m, stackArg) ?? 'typescript-express';
-  return loadRules()
-    .rules.filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
+  const { rules, stacks } = loadRules();
+  const stack = resolveStack(root, m, stackArg) ?? DEFAULT_STACK;
+  if (!Object.hasOwn(stacks, stack)) throw new Error(`unknown stack ${stack} (known: ${Object.keys(stacks).join(', ')})`);
+  return rules
+    .filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
     .map((r) => {
-      const ext = r.template!.slice(r.template!.lastIndexOf('.'));
-      const template = `templates/${stack}/${r.template}`;
+      const { template, target } = scaffoldFiles(r, stack)!;
       const presentAt = scaffoldCandidates(r).find((c) => existsSync(join(root, c)));
       return {
         ruleId: r.id,
         title: r.title,
-        target: `${r.dir}/${r.name}${ext}`,
+        target,
         template,
         templateExists: existsSync(assetPath(template)),
         status: presentAt ? 'present' : 'missing',
