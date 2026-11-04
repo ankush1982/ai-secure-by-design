@@ -1,0 +1,28 @@
+name: Rule or regime request
+description: Report a false positive or missed finding, or propose a new rule, control or stack
+labels: [rules]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change?
+      options:
+        - False positive
+        - Missed finding
+        - New rule
+        - Regime correction
+        - New stack
+    validations:
+      required: true
+  - type: input
+    id: rule
+    attributes:
+      label: Rule ID or control, if there is one
+      placeholder: SBD-CODE-001
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail
+      description: A minimal code sample helps. For a regime correction, cite the primary text. Remove any secrets or personal data first.
+    validations:
+      required: true
