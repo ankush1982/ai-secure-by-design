@@ -15,26 +15,30 @@ You are deploying the Secure & Private by Design scaffolds. The user has already
 
 ### Product-code scaffolds — based on stack
 
-Look up the stack in the manifest (`typescript-express`, `typescript-nextjs`, `python-fastapi`). Use the templates from `templates/<stack>/`. Drop these files into the user's repo at the paths shown:
+Look up `product.stack` in the manifest. Templates exist for `typescript-express` and `python-fastapi`; `typescript-nextjs` has none yet, so report it as a gap. `sbd plan` (or `sbd_plan_scaffold`) gives the exact template and target path for each scaffold. Use the templates from `templates/<stack>/`. Drop these files into the user's repo at the paths shown, with `.ts` as the extension for TypeScript stacks and `.py` for `python-fastapi`:
 
 **Privacy layer (DPDP)**
-- `src/privacy/consent.ts` — record + verify DPDP §6 consent
-- `src/privacy/dsr_handler.ts` — DPDP §11–14 data principal rights endpoints
-- `src/privacy/retention_runner.ts` — DPDP §8(7) retention enforcement
-- `src/privacy/breach_notifier.ts` — DPDP §8(6) breach notification stub
-- `src/privacy/children_gate.ts` — DPDP §9 verifiable parental consent (only if any dataCategory has `childrenDataPossible: true`)
+- `src/privacy/consent` — record + verify DPDP §6 consent
+- `src/privacy/dsr_handler` — DPDP §11–14 data principal rights endpoints
+- `src/privacy/retention_runner` — DPDP §8(7) retention enforcement
+- `src/privacy/breach_notifier` — DPDP §8(6) breach notification stub
+- `src/privacy/children_gate` — DPDP §9 verifiable parental consent (only if any dataCategory has `childrenDataPossible: true`)
 
 **Security layer (ISO 27001 + SSDF)**
-- `src/security/rbac.ts` — ISO 27001 A.5.15 / A.8.3 access control
-- `src/security/audit_log.ts` — ISO 27001 A.8.15 logging (PII-redacting)
-- `src/security/security_headers.ts` — OWASP defaults
+- `src/security/rbac` — ISO 27001 A.5.15 / A.8.3 access control
+- `src/security/audit_log` — ISO 27001 A.8.15 logging (PII-redacting)
+- `src/security/security_headers` — OWASP defaults
 
 **Healthcare-specific (only if `regimes` includes any AND `dataCategories` has any with `sensitivity: sensitive-personal` AND product domain is healthcare per the manifest)**
-- `src/security/phi_redaction.ts` — clinical-data redaction helper
+- `src/security/phi_redaction` — clinical-data redaction helper
 
 **AI layer (only if `aiSystems` is non-empty)**
-- `src/ai/decision_log.ts` — AI decision logging
-- `src/ai/human_oversight.ts` — human-in-the-loop gate (only if any aiSystem has `humanOversight != none`)
+- `src/ai/decision_log` — AI decision logging
+- `src/ai/human_oversight` — human-in-the-loop gate (only if any aiSystem has `humanOversight != none`)
+
+**Python notes (`python-fastapi`)**
+- Scaffolds need Python 3.10+ and `fastapi`. Add `fastapi` to the project's dependencies if it is missing.
+- They use relative imports (`from ..security.audit_log import audit_log`), so the folder holding `privacy/`, `security/` and `ai/` must be imported as a package. Run from the project root (`uvicorn src.main:app`), not with `src` on `PYTHONPATH`.
 
 ### Dev-loop artifacts
 
@@ -55,6 +59,7 @@ Look up the stack in the manifest (`typescript-express`, `typescript-nextjs`, `p
 // Safe to modify. Safe to delete. Re-run /sbd-deploy to regenerate.
 // Docs: docs/scaffolds/<name>.md
 ```
+Python templates use the same lines with `#` comments.
 
 4. **Use the scaffold-generator subagent** to actually emit each file. The subagent reads the template, fills in manifest-driven values, and writes the file. Invoke once per scaffold.
 
@@ -74,4 +79,4 @@ Next: /sbd-check to verify everything is wired up.
 
 - HIPAA, GDPR, EU AI Act, or any regime not in the manifest. Even if the user's data smells like it should trigger one, the user picks regimes, not the plugin.
 - Scaffolds for stacks not in the manifest. If user is on Go and the plugin doesn't support it yet, report what's missing instead of guessing.
-- Production secrets. Every scaffold uses `process.env.*` or equivalent. Never hardcode.
+- Production secrets. Every scaffold uses `process.env.*`, `os.environ` or equivalent. Never hardcode.

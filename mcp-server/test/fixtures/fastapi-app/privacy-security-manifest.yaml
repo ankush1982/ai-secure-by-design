@@ -1,0 +1,25 @@
+schemaVersion: "0.2"
+product:
+  name: fastapi-clinic
+  domain: healthcare
+  description: Sample FastAPI app that mounts every Python scaffold.
+  stack: python-fastapi
+regimes:
+  - id: nist-ssdf-1.1
+  - id: iso-27001-2022
+  - id: dpdp-2023
+dataCategories:
+  - name: patient-clinical
+    sensitivity: sensitive-personal
+    fields: [diagnosis]
+    retentionDays: 1825
+    consentRequired: true
+    consentBasis: explicit
+    childrenDataPossible: true
+aiSystems:
+  - name: triage
+    sdk: openai
+    riskLevel: high
+    decisionAutonomy: advisory
+    humanOversight: clinician-review
+    inputCategories: [patient-clinical]

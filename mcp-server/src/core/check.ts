@@ -23,6 +23,7 @@ export interface CheckOptions {
 }
 
 const SCAFFOLD_EXTS = ['.ts', '.tsx', '.js', '.mjs', '.py'];
+export const DEFAULT_STACK = 'typescript-express';
 
 export function runCheck(opts: CheckOptions): CheckResult {
   const root = opts.root;
@@ -157,17 +158,26 @@ export function scaffoldCandidates(rule: Rule): string[] {
   return [...names].flatMap((n) => SCAFFOLD_EXTS.map((e) => `${rule.dir}/${n}${e}`));
 }
 
+/** Where a scaffold's template and deployed file live for a stack; undefined for an unknown stack. */
+export function scaffoldFiles(rule: Rule, stack: string): { template: string; target: string } | undefined {
+  const ext = loadRules().stacks[stack];
+  return ext ? { template: `templates/${stack}/${rule.template}${ext}`, target: `${rule.dir}/${rule.name}${ext}` } : undefined;
+}
+
 function scaffoldFindings(root: string, m: Manifest): Finding[] {
   const out: Finding[] = [];
   for (const rule of loadRules().rules.filter((r) => r.kind === 'scaffold' && applicable(r, m))) {
     const candidates = scaffoldCandidates(rule);
     if (candidates.some((c) => existsSync(join(root, c)))) continue;
+    const files = scaffoldFiles(rule, m.product.stack ?? DEFAULT_STACK);
     out.push({
       ruleId: rule.id,
       title: `Missing scaffold: ${rule.title}`,
       severity: effectiveSeverity(rule, m),
       message: `Missing ${rule.dir}/${rule.name}.<ext> (${rule.title}).`,
-      remediation: `Copy templates/<stack>/${rule.template} to ${rule.dir}/${rule.name}${rule.template!.slice(rule.template!.lastIndexOf('.'))}, or run the deploy prompt.`,
+      remediation: files
+        ? `Copy ${files.template} to ${files.target}, or run the deploy prompt.`
+        : `No templates for stack ${m.product.stack}; add ${rule.dir}/${rule.name}.<ext> yourself.`,
       regimes: rule.regimes ?? [],
     });
   }

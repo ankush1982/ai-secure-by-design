@@ -176,7 +176,7 @@ export function buildServer(root: string): McpServer {
       description: 'List the scaffolds the manifest requires, where each goes, its template, and whether it is already present. Writes nothing.',
       inputSchema: {
         manifestPath: manifestArg,
-        stack: z.string().optional().describe('Template stack, default typescript-express.'),
+        stack: z.string().optional().describe('Template stack. Defaults to product.stack in the manifest, then typescript-express.'),
       },
       annotations: READ_ONLY,
     },

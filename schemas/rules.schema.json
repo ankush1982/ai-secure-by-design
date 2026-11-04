@@ -39,6 +39,11 @@
       "additionalProperties": false,
       "properties": {
         "schemaVersion": { "type": "string", "enum": ["0.2"] },
+        "stacks": {
+          "type": "object",
+          "description": "Scaffold stack id to the file extension of its templates.",
+          "additionalProperties": { "type": "string", "pattern": "^\\.[a-z]+$" }
+        },
         "rules": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
       }
     },

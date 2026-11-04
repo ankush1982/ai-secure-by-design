@@ -1,0 +1,6 @@
+# What `npm test` needs to compile, type-check and run the Python scaffolds.
+# Regenerate requirements.lock with:
+#   uv pip compile --universal --python-version 3.10 --generate-hashes scripts/python/requirements.in -o scripts/python/requirements.lock
+fastapi
+httpx
+mypy

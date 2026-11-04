@@ -1,7 +1,7 @@
 // Regime catalogue queries and scaffold planning (read-only).
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { scaffoldCandidates } from './check.js';
+import { DEFAULT_STACK, scaffoldCandidates, scaffoldFiles } from './check.js';
 import { assetPath } from './assets.js';
 import { loadRegimes, loadRules } from './load.js';
 import { holds } from './manifest.js';
@@ -34,17 +34,19 @@ export interface ScaffoldPlanItem {
 }
 
 /** What `deploy` would write, without writing anything. */
-export function planScaffold(root: string, m: Manifest, stack = 'typescript-express'): ScaffoldPlanItem[] {
-  return loadRules()
-    .rules.filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
+export function planScaffold(root: string, m: Manifest, requested?: string): ScaffoldPlanItem[] {
+  const { rules, stacks } = loadRules();
+  const stack = requested ?? m.product.stack ?? DEFAULT_STACK;
+  if (!stacks[stack]) throw new Error(`unknown stack ${stack} (known: ${Object.keys(stacks).join(', ')})`);
+  return rules
+    .filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
     .map((r) => {
-      const ext = r.template!.slice(r.template!.lastIndexOf('.'));
-      const template = `templates/${stack}/${r.template}`;
+      const { template, target } = scaffoldFiles(r, stack)!;
       const presentAt = scaffoldCandidates(r).find((c) => existsSync(join(root, c)));
       return {
         ruleId: r.id,
         title: r.title,
-        target: `${r.dir}/${r.name}${ext}`,
+        target,
         template,
         templateExists: existsSync(assetPath(template)),
         status: presentAt ? 'present' : 'missing',

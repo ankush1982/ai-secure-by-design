@@ -60,7 +60,7 @@ const { values, positionals } = parseArgs({
     output: { type: 'string' },
     'fail-on': { type: 'string', default: 'high' },
     regime: { type: 'string', default: 'all' },
-    stack: { type: 'string', default: 'typescript-express' },
+    stack: { type: 'string' },
     tier: { type: 'string' },
     help: { type: 'boolean', short: 'h', default: false },
     version: { type: 'boolean', short: 'v', default: false },
