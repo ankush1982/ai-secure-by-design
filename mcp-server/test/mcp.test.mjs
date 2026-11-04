@@ -1,13 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { request } from 'node:http';
+import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SERVER, json, tempFixture } from './helpers.mjs';
 
-const TOOLS = ['sbd_check', 'sbd_evidence_plan', 'sbd_explain_control', 'sbd_list_controls', 'sbd_plan_scaffold', 'sbd_review_diff', 'sbd_scan_text', 'sbd_validate_manifest'];
+const TOOLS = ['sbd_check', 'sbd_evidence_plan', 'sbd_explain_control', 'sbd_list_controls', 'sbd_plan_deploy', 'sbd_plan_init', 'sbd_plan_scaffold', 'sbd_review_diff', 'sbd_scan_text', 'sbd_validate_manifest'];
 
 async function exercise(client, dir) {
   const { tools } = await client.listTools();
@@ -23,6 +25,15 @@ async function exercise(client, dir) {
 
   const bad = await client.callTool({ name: 'sbd_validate_manifest', arguments: { manifestPath: '../../../etc/passwd' } });
   assert.equal(bad.isError, true);
+
+  const initPlan = JSON.parse((await client.callTool({ name: 'sbd_plan_init', arguments: {} })).content[0].text);
+  assert.equal(initPlan.action, 'skip', 'an existing manifest is reported, never replaced');
+  const manifestBefore = readFileSync(join(dir, 'privacy-security-manifest.yaml'), 'utf8');
+  const deployPlan = JSON.parse((await client.callTool({ name: 'sbd_plan_deploy', arguments: { stack: 'typescript-express' } })).content[0].text);
+  assert.ok(deployPlan.items.length > 0);
+  assert.deepEqual(deployPlan.items, json(['deploy', '--root', dir, '--stack', 'typescript-express', '--dry-run']).items, 'MCP and CLI give identical plans');
+  assert.equal(readFileSync(join(dir, 'privacy-security-manifest.yaml'), 'utf8'), manifestBefore);
+  assert.ok(!existsSync(join(dir, 'src/privacy/consent.ts')), 'the plan writes nothing');
 
   const { prompts } = await client.listPrompts();
   assert.deepEqual(prompts.map((p) => p.name).sort(), ['sbd-check', 'sbd-deploy', 'sbd-init']);

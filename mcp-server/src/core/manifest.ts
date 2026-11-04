@@ -25,7 +25,7 @@ export function loadManifest(absPath: string, displayPath: string): ManifestLoad
         title: 'Manifest missing',
         severity: 'CRITICAL',
         message: `No manifest at ${displayPath}.`,
-        remediation: 'Create one with the init prompt or from templates/privacy-security-manifest.example.yaml.',
+        remediation: 'Create a draft with `sbd init --non-interactive`, or use the init prompt.',
         file: displayPath,
         regimes: ref('secure-sdlc'),
       }],

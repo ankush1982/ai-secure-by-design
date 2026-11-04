@@ -9,6 +9,8 @@ You are the entry point for the Secure & Private by Design plugin. The user has 
 
 Run the **profiler subagent** to scan the repo, then conduct an interactive 3-step interview with the user, then write `privacy-security-manifest.yaml` at the project root.
 
+The engine does the deterministic part, so the result is the same with or without an assistant. `sbd init --non-interactive` writes a draft with `TODO(user):` markers from the detected stack and candidate fields. `sbd_plan_init` returns that draft without writing it. You add what only the user can decide: regimes, classification, AI systems.
+
 ## Steps
 
 ### 1. Run the profiler
@@ -58,9 +60,9 @@ If AI SDKs were detected, ask:
 
 ### 5. Write the manifest
 
-Generate `privacy-security-manifest.yaml` at the project root using the schema in `templates/privacy-security-manifest.example.yaml`. Fill in all collected values. Leave `TODO(user):` comments where the user must confirm a guess.
+Call `sbd_plan_init` with the regimes the user picked as `regimes`. If the MCP tools are unavailable, run `node "${CLAUDE_PLUGIN_ROOT}/dist/sbd.mjs" init --non-interactive --dry-run --format json --regime <id> ...`. Start from its `draft` and fill in the collected values, following `templates/privacy-security-manifest.example.yaml`. Leave the `TODO(user):` comments where the user must still confirm something.
 
-Use Write, not Edit — this is a new file. If the file already exists, ask the user before overwriting.
+Use Write, not Edit — this is a new file. If the plan's `action` is `skip`, a manifest already exists: ask the user before overwriting. The CLI never overwrites one.
 
 ### 6. Print next steps
 

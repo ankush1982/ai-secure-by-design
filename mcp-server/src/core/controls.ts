@@ -5,6 +5,7 @@ import { DEFAULT_STACK, scaffoldCandidates, scaffoldFiles } from './check.js';
 import { assetPath } from './assets.js';
 import { loadRegimes, loadRules } from './load.js';
 import { holds } from './manifest.js';
+import { checkStack, detectStack } from './stack.js';
 import type { Manifest, RegimeControl } from './types.js';
 
 export function listControls(regime = 'all'): Array<{ id: string; name: string; controls: RegimeControl[] }> {
@@ -33,11 +34,17 @@ export interface ScaffoldPlanItem {
   presentAt?: string;
 }
 
-/** What `deploy` would write, without writing anything. */
-export function planScaffold(root: string, m: Manifest, requested?: string): ScaffoldPlanItem[] {
+/** The stack to use: explicit, then declared in the manifest, then detected. */
+export function resolveStack(root: string, m: Manifest, stack?: string): string | undefined {
+  const s = stack ?? m.product.stack ?? detectStack(root).stack;
+  return s === undefined ? s : checkStack(s);
+}
+
+/** Which scaffolds the manifest requires and where they stand. Writes nothing. */
+export function planScaffold(root: string, m: Manifest, stackArg?: string): ScaffoldPlanItem[] {
   const { rules, stacks } = loadRules();
-  const stack = requested ?? m.product.stack ?? DEFAULT_STACK;
-  if (!stacks[stack]) throw new Error(`unknown stack ${stack} (known: ${Object.keys(stacks).join(', ')})`);
+  const stack = resolveStack(root, m, stackArg) ?? DEFAULT_STACK;
+  if (!Object.hasOwn(stacks, stack)) throw new Error(`unknown stack ${stack} (known: ${Object.keys(stacks).join(', ')})`);
   return rules
     .filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
     .map((r) => {

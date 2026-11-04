@@ -10,6 +10,7 @@ import { classifiedFields, DEFAULT_MANIFEST, holds, loadManifest, normaliseField
 import { confine, toPosix } from './paths.js';
 import { isMcpConfig, scanMcpConfig } from './mcp-config.js';
 import { ignored, regex, scanText } from './scan.js';
+import { detectStack } from './stack.js';
 import { SEVERITY_ORDER, WIKI_REGIME, type CheckResult, type Finding, type Manifest, type Rule, type Severity } from './types.js';
 import { VERSION } from './version.js';
 
@@ -120,12 +121,18 @@ function scanFiles(root: string, files: string[], m: Manifest): Finding[] {
   return out;
 }
 
-function fieldFindings(root: string, files: string[], m: Manifest): Finding[] {
+export interface FieldCandidate {
+  name: string;
+  file: string;
+  line: number;
+}
+
+/** Personal-looking schema fields outside `classified`. Candidates only; the user classifies. */
+export function unclassifiedFields(root: string, files: string[], classified: Set<string>): FieldCandidate[] {
   const spec = loadRules().personalFields;
   const tokens = new Set(spec.tokens);
   const exact = new Set(spec.exactOnly ?? []);
-  const classified = classifiedFields(m);
-  const out: Finding[] = [];
+  const out: FieldCandidate[] = [];
   const seen = new Set<string>();
   for (const file of files.filter(isSchemaFile)) {
     const text = readText(join(root, file));
@@ -138,19 +145,24 @@ function fieldFindings(root: string, files: string[], m: Manifest): Finding[] {
       const key = `${file}:${norm}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      out.push({
-        ruleId: spec.ruleId,
-        title: 'Unclassified personal-looking field',
-        severity: spec.severity,
-        message: `Field ${hit.name} looks personal or sensitive but no dataCategory lists it.`,
-        remediation: 'Add it to the right dataCategories[].fields in the manifest (or to a not-personal category). Classification is your call; the tool never classifies for you.',
-        file,
-        line: hit.line,
-        regimes: spec.regimes ?? [],
-      });
+      out.push({ name: hit.name, file, line: hit.line });
     }
   }
   return out;
+}
+
+function fieldFindings(root: string, files: string[], m: Manifest): Finding[] {
+  const spec = loadRules().personalFields;
+  return unclassifiedFields(root, files, classifiedFields(m)).map((c) => ({
+    ruleId: spec.ruleId,
+    title: 'Unclassified personal-looking field',
+    severity: spec.severity,
+    message: `Field ${c.name} looks personal or sensitive but no dataCategory lists it.`,
+    remediation: 'Add it to the right dataCategories[].fields in the manifest (or to a not-personal category). Classification is your call; the tool never classifies for you.',
+    file: c.file,
+    line: c.line,
+    regimes: spec.regimes ?? [],
+  }));
 }
 
 export function scaffoldCandidates(rule: Rule): string[] {
@@ -160,24 +172,26 @@ export function scaffoldCandidates(rule: Rule): string[] {
 
 /** Where a scaffold's template and deployed file live for a stack; undefined for an unknown stack. */
 export function scaffoldFiles(rule: Rule, stack: string): { template: string; target: string } | undefined {
-  const ext = loadRules().stacks[stack];
+  const { stacks } = loadRules();
+  const ext = Object.hasOwn(stacks, stack) ? stacks[stack] : undefined;
   return ext ? { template: `templates/${stack}/${rule.template}${ext}`, target: `${rule.dir}/${rule.name}${ext}` } : undefined;
 }
 
 function scaffoldFindings(root: string, m: Manifest): Finding[] {
   const out: Finding[] = [];
+  const stack = m.product.stack ?? detectStack(root).stack ?? DEFAULT_STACK;
   for (const rule of loadRules().rules.filter((r) => r.kind === 'scaffold' && applicable(r, m))) {
     const candidates = scaffoldCandidates(rule);
     if (candidates.some((c) => existsSync(join(root, c)))) continue;
-    const files = scaffoldFiles(rule, m.product.stack ?? DEFAULT_STACK);
+    const files = scaffoldFiles(rule, stack);
     out.push({
       ruleId: rule.id,
       title: `Missing scaffold: ${rule.title}`,
       severity: effectiveSeverity(rule, m),
       message: `Missing ${rule.dir}/${rule.name}.<ext> (${rule.title}).`,
       remediation: files
-        ? `Copy ${files.template} to ${files.target}, or run the deploy prompt.`
-        : `No templates for stack ${m.product.stack}; add ${rule.dir}/${rule.name}.<ext> yourself.`,
+        ? `Copy ${files.template} to ${files.target}, or run \`sbd deploy\`.`
+        : `No templates for stack ${stack}; add ${rule.dir}/${rule.name}.<ext> yourself.`,
       regimes: rule.regimes ?? [],
     });
   }
