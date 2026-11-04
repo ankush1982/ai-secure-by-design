@@ -213,10 +213,11 @@ const SORT = (a: Finding, b: Finding) =>
 
 export function result(root: string, manifestPath: string, m: Manifest | undefined, findings: Finding[]): CheckResult {
   findings.sort(SORT);
-  // Wiki tags follow the same rule as every regime: shown only if the user picked it.
-  if (!m?.regimes.some((r) => r.id === WIKI_REGIME)) {
-    for (const f of findings) f.regimes = f.regimes.filter((g) => g.regime !== WIKI_REGIME);
-  }
+  // A regime is cited only if the user picked it. With no manifest there is no pick to go
+  // by, so the catalogue tags stay and only the wiki, which is always opt-in, goes.
+  const picked = new Set(m?.regimes.map((r) => r.id));
+  const shown = (regime: string) => (m ? picked.has(regime) : regime !== WIKI_REGIME);
+  for (const f of findings) f.regimes = f.regimes.filter((g) => shown(g.regime));
   return {
     tool: { name: 'sbd', version: VERSION },
     root,
