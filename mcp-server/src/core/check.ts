@@ -119,12 +119,18 @@ function scanFiles(root: string, files: string[], m: Manifest): Finding[] {
   return out;
 }
 
-function fieldFindings(root: string, files: string[], m: Manifest): Finding[] {
+export interface FieldCandidate {
+  name: string;
+  file: string;
+  line: number;
+}
+
+/** Personal-looking schema fields outside `classified`. Candidates only; the user classifies. */
+export function unclassifiedFields(root: string, files: string[], classified: Set<string>): FieldCandidate[] {
   const spec = loadRules().personalFields;
   const tokens = new Set(spec.tokens);
   const exact = new Set(spec.exactOnly ?? []);
-  const classified = classifiedFields(m);
-  const out: Finding[] = [];
+  const out: FieldCandidate[] = [];
   const seen = new Set<string>();
   for (const file of files.filter(isSchemaFile)) {
     const text = readText(join(root, file));
@@ -137,19 +143,24 @@ function fieldFindings(root: string, files: string[], m: Manifest): Finding[] {
       const key = `${file}:${norm}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      out.push({
-        ruleId: spec.ruleId,
-        title: 'Unclassified personal-looking field',
-        severity: spec.severity,
-        message: `Field ${hit.name} looks personal or sensitive but no dataCategory lists it.`,
-        remediation: 'Add it to the right dataCategories[].fields in the manifest (or to a not-personal category). Classification is your call; the tool never classifies for you.',
-        file,
-        line: hit.line,
-        regimes: spec.regimes ?? [],
-      });
+      out.push({ name: hit.name, file, line: hit.line });
     }
   }
   return out;
+}
+
+function fieldFindings(root: string, files: string[], m: Manifest): Finding[] {
+  const spec = loadRules().personalFields;
+  return unclassifiedFields(root, files, classifiedFields(m)).map((c) => ({
+    ruleId: spec.ruleId,
+    title: 'Unclassified personal-looking field',
+    severity: spec.severity,
+    message: `Field ${c.name} looks personal or sensitive but no dataCategory lists it.`,
+    remediation: 'Add it to the right dataCategories[].fields in the manifest (or to a not-personal category). Classification is your call; the tool never classifies for you.',
+    file: c.file,
+    line: c.line,
+    regimes: spec.regimes ?? [],
+  }));
 }
 
 export function scaffoldCandidates(rule: Rule): string[] {
@@ -167,7 +178,7 @@ function scaffoldFindings(root: string, m: Manifest): Finding[] {
       title: `Missing scaffold: ${rule.title}`,
       severity: effectiveSeverity(rule, m),
       message: `Missing ${rule.dir}/${rule.name}.<ext> (${rule.title}).`,
-      remediation: `Copy templates/<stack>/${rule.template} to ${rule.dir}/${rule.name}${rule.template!.slice(rule.template!.lastIndexOf('.'))}, or run the deploy prompt.`,
+      remediation: `Copy templates/<stack>/${rule.template} to ${rule.dir}/${rule.name}${rule.template!.slice(rule.template!.lastIndexOf('.'))}, or run \`sbd deploy\`.`,
       regimes: rule.regimes ?? [],
     });
   }

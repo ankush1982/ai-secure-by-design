@@ -29,7 +29,7 @@
 - [x] AI Security Wiki integration: opt-in `ai-security-wiki` regime, `AIW-*` rules, MCP configuration checks, `sbd evidence`, `/sbd-evidence`, `sbd: ignore`
 - [ ] Cross-platform evaluation harness (same prompts through each adapter, diff the results)
 - [ ] Signed releases, SBOM, permissions statement
-- [ ] `init --non-interactive` and `deploy` in the CLI (today: MCP prompts + `plan`)
+- [x] `init --non-interactive` and `deploy` in the CLI, with read-only plans through MCP (`sbd_plan_init`, `sbd_plan_deploy`)
 
 ## v0.2.x — first feedback round
 

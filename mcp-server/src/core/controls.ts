@@ -5,6 +5,7 @@ import { scaffoldCandidates } from './check.js';
 import { assetPath } from './assets.js';
 import { loadRegimes, loadRules } from './load.js';
 import { holds } from './manifest.js';
+import { checkStack, detectStack } from './stack.js';
 import type { Manifest, RegimeControl } from './types.js';
 
 export function listControls(regime = 'all'): Array<{ id: string; name: string; controls: RegimeControl[] }> {
@@ -33,8 +34,15 @@ export interface ScaffoldPlanItem {
   presentAt?: string;
 }
 
-/** What `deploy` would write, without writing anything. */
-export function planScaffold(root: string, m: Manifest, stack = 'typescript-express'): ScaffoldPlanItem[] {
+/** The stack to use: explicit, then declared in the manifest, then detected. */
+export function resolveStack(root: string, m: Manifest, stack?: string): string | undefined {
+  const s = stack ?? m.product.stack ?? detectStack(root).stack;
+  return s === undefined ? s : checkStack(s);
+}
+
+/** Which scaffolds the manifest requires and where they stand. Writes nothing. */
+export function planScaffold(root: string, m: Manifest, stackArg?: string): ScaffoldPlanItem[] {
+  const stack = resolveStack(root, m, stackArg) ?? 'typescript-express';
   return loadRules()
     .rules.filter((r) => r.kind === 'scaffold' && (r.when ?? []).every((c) => holds(m, c)))
     .map((r) => {
