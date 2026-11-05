@@ -17,6 +17,7 @@
   <a href="./LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-0EA58F"></a>
   <img alt="Node.js 20+" src="https://img.shields.io/badge/node-20%2B-0EA58F">
   <a href="https://github.com/ankush1982/ai-secure-by-design/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ankush1982/ai-secure-by-design?color=F7A600"></a>
+  <a href="https://glama.ai/mcp/servers/ankush1982/ai-secure-by-design"><img alt="ai-secure-by-design MCP server – quality and maintenance score on Glama" src="https://glama.ai/mcp/servers/ankush1982/ai-secure-by-design/badges/score.svg"></a>
 </p>
 
 <p align="center">
